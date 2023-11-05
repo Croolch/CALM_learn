@@ -136,7 +136,7 @@ class HRLPlayer(common_player.CommonPlayer):
                     masks = self.env.get_action_mask()
                     action = self.get_masked_action(obs_dict, masks, is_determenistic)
                 else:
-                    action = self.get_action(obs_dict, is_determenistic)
+                    action = self.get_action(obs_dict, is_determenistic) # get actions?
                 obs_dict, r, done, info = self.env_step(self.env, obs_dict, action)
                 cr += r
                 steps += 1
@@ -274,8 +274,9 @@ class HRLPlayer(common_player.CommonPlayer):
 
     def _compute_llc_action(self, obs, actions):
         llc_obs = self._extract_llc_obs(obs)
-        processed_obs = self._llc_agent._preproc_obs(llc_obs)
+        processed_obs = self._llc_agent._preproc_obs(llc_obs) # 这是什么
 
+        # z是latent
         z = torch.nn.functional.normalize(actions, dim=-1)
         mu, _ = self._llc_agent.model.a2c_network.eval_actor(processed_obs, z)
         llc_action = players.rescale_actions(self.actions_low, self.actions_high, torch.clamp(mu, -1.0, 1.0))
@@ -284,7 +285,10 @@ class HRLPlayer(common_player.CommonPlayer):
 
     def _extract_llc_obs(self, obs):
         obs_size = obs.shape[-1]
+        # 为什么减去tasksize
         llc_obs = obs[..., :obs_size - self._task_size]
+
+        # 返回llc的observations
         return llc_obs
     
     def _calc_disc_reward(self, amp_obs):

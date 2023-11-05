@@ -203,7 +203,7 @@ class CALMBuilder(amp_network_builder.AMPBuilder):
         def eval_actor(self, obs, calm_latents, use_hidden_latents=False):
             a_out = self.actor_cnn(obs)
             a_out = a_out.contiguous().view(a_out.size(0), -1)
-            a_out = self.actor_mlp(a_out, calm_latents, use_hidden_latents)
+            a_out = self.actor_mlp(a_out, calm_latents, use_hidden_latents) # stylenet
                      
             if self.is_discrete:
                 logits = self.logits(a_out)
@@ -377,9 +377,9 @@ class AMPStyleCatNet1(torch.nn.Module):
         else:
             style = self.eval_style(latent)
 
-        h = torch.cat([obs, style], dim=-1)
+        h = torch.cat([obs, style], dim=-1) # 横着拼接obs和style，可能一起训练，再看看
 
-        for i in range(len(self._dense_layers)):
+        for i in range(len(self._dense_layers)): # h在网络中传播
             curr_dense = self._dense_layers[i]
             h = curr_dense(h)
             h = self._activation(h)

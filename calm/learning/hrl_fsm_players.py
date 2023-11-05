@@ -60,6 +60,7 @@ class HRLFSMPlayer(HRLPlayer):
         return all_encoded_demo_amp_obs
 
     def env_step(self, env, obs_dict, action):
+        # print选择的action
         requested_behavior = env.task.movement_type.value
         if self.env.task._should_strike[0].item() == 1:
             requested_behavior = env.task._strike_index
