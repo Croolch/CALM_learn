@@ -1,5 +1,5 @@
 # if given, will override the device setting in gym. 
-env: 
+env: # 似乎是task的配置
   numEnvs: 4096
   envSpacing: 5
   episodeLength: 300
@@ -9,7 +9,7 @@ env:
   pdControl: True
   powerScale: 1.0
   controlFrequencyInv: 2 # 30 Hz
-  stateInit: "Default"
+  stateInit: "Default" # default是啥
   hybridInitProb: 0.5
   numAMPObsSteps: 10
   numAMPEncObsSteps: 60
@@ -35,18 +35,18 @@ env:
     dynamicFriction: 1.0
     restitution: 0.0
 
-sim:
+sim: # 查看isaacgym的文档
   substeps: 2
   physx:
-    num_threads: 4
+    num_threads: 4 # physx占用的cpu线程
     solver_type: 1  # 0: pgs, 1: tgs
     num_position_iterations: 4
     num_velocity_iterations: 0
-    contact_offset: 0.02
-    rest_offset: 0.0
-    bounce_threshold_velocity: 0.2
-    max_depenetration_velocity: 10.0
-    default_buffer_size_multiplier: 10.0
+    contact_offset: 0.02 # 距离小于两个物体的offset的合计值时，才会发生碰撞
+    rest_offset: 0.0 # 距离等于两个物体的offset的合计值时，不再发生碰撞
+    bounce_threshold_velocity: 0.2 # 相对速度低于此值的接触不会产生反弹
+    max_depenetration_velocity: 10.0 # 和其他Mesh存在穿插时，物理引擎会在运行时尝试将其分开，这个速度值就是用户限定的分开时最大速度
+    default_buffer_size_multiplier: 10.0 # 模拟器内部的缓冲区大小，agent越多，这个值越大
 
   flex:
     num_inner_iterations: 10

@@ -85,7 +85,7 @@ def create_rlgpu_env(**kwargs):
         cfg['rank'] = rank
         cfg['rl_device'] = 'cuda:' + str(rank)
 
-    sim_params = parse_sim_params(args, cfg, cfg_train)
+    sim_params = parse_sim_params(args, cfg, cfg_train) # 返回gym的simulation的参数 来自cfg_env的yalm文件
     task, env = parse_task(args, cfg, cfg_train, sim_params)
 
     print('num_envs: {:d}'.format(env.num_envs))
@@ -190,10 +190,14 @@ class RLGPUEnv(vecenv.IVecEnv):
 vecenv.register('RLGPU', lambda config_name, num_actors, **kwargs: RLGPUEnv(config_name, num_actors, **kwargs))
 env_configurations.register('rlgpu', {
     'env_creator': lambda **kwargs: create_rlgpu_env(**kwargs),
-    'vecenv_type': 'RLGPU'})
+    'vecenv_type': 'RLGPU'}) # 附加calm自定义的环境，以及执行的函数
 
 
 def build_alg_runner(algo_observer):
+    '''
+    Runner声明了一些工厂函数，用于创建agent，player，model，network以及algo_observer
+    该函数用于注册用户自定义的工厂函数，如amp，hrl，calm
+    '''
     runner = Runner(algo_observer)
     runner.algo_factory.register_builder('amp', lambda **kwargs: amp_agent.AMPAgent(**kwargs))
     runner.player_factory.register_builder('amp', lambda **kwargs: amp_players.AMPPlayerContinuous(**kwargs))
@@ -220,11 +224,13 @@ def build_alg_runner(algo_observer):
 def main():
     global args
     global cfg
-    global cfg_train
+    global cfg_train # 给rlgames用的，来自yalm，gymutil会返回一些默认参数，也会读取用户传入的参数
     global run_name
 
     set_np_formatting()
+    # Parse command line arguments
     args = get_args()
+    # cfg是传入的cfg_env yalm文件
     cfg, cfg_train, logdir = load_cfg(args)
 
     time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -258,12 +264,13 @@ def main():
             name=run_name,
         )
 
+    # vargs是来自gym的参数 用户传入参数会覆盖对应值
     vargs = vars(args)
 
-    algo_observer = RLGPUAlgoObserver()
+    algo_observer = RLGPUAlgoObserver() # 不知道是啥
 
     runner = build_alg_runner(algo_observer)
-    runner.load(cfg_train)
+    runner.load(cfg_train) # 加载cfg_train，create model
     runner.reset()
     runner.run(vargs)
 

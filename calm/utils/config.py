@@ -79,6 +79,7 @@ def set_seed(seed, torch_deterministic=False):
 
 
 def load_cfg(args):
+    # 解析cfg_train和cfg_env传入的yaml文件
     with open(os.path.join(os.getcwd(), args.cfg_train), 'r') as f:
         cfg_train = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -160,9 +161,10 @@ def load_cfg(args):
 
 
 def parse_sim_params(args, cfg, cfg_train):
-    # initialize sim
+    # initialize sim 
+    # 看isaacgym文档
     sim_params = gymapi.SimParams()
-    sim_params.dt = SIM_TIMESTEP
+    sim_params.dt = SIM_TIMESTEP # 1/60的仿真timestep
     sim_params.num_client_threads = args.slices
 
     if args.physics_engine == gymapi.SIM_FLEX:
@@ -172,8 +174,8 @@ def parse_sim_params(args, cfg, cfg_train):
         sim_params.flex.num_outer_iterations = 4
         sim_params.flex.num_inner_iterations = 10
     elif args.physics_engine == gymapi.SIM_PHYSX:
-        sim_params.physx.solver_type = 1
-        sim_params.physx.num_position_iterations = 4
+        sim_params.physx.solver_type = 1 # TGS solver
+        sim_params.physx.num_position_iterations = 4 # 用于控制物体在模拟中的位置精度。默认值为4
         sim_params.physx.num_velocity_iterations = 0
         sim_params.physx.num_threads = 4
         sim_params.physx.use_gpu = args.use_gpu
@@ -195,6 +197,7 @@ def parse_sim_params(args, cfg, cfg_train):
 
 
 def get_args(benchmark=False):
+    # 一个list声明所有参数
     custom_parameters = [
         {"name": "--test", "action": "store_true", "default": False,
             "help": "Run trained policy, no training"},
@@ -261,6 +264,7 @@ def get_args(benchmark=False):
          "help": "In test, sample random latents."},
     ]
 
+    # benchmark是做什么的？
     if benchmark:
         custom_parameters += [{"name": "--num_proc", "type": int, "default": 1, "help": "Number of child processes to launch"},
                               {"name": "--random_actions", "action": "store_true",
@@ -269,7 +273,8 @@ def get_args(benchmark=False):
                                   "help": "Number of timing reports"},
                               {"name": "--bench_file", "action": "store", "help": "Filename to store benchmark results"}]
 
-    # parse arguments
+    # parse arguments 
+    # gym声明默认的参数以及default参数值，python在bash传入的参数会覆盖默认参数
     args = gymutil.parse_arguments(
         description="RL Policy",
         custom_parameters=custom_parameters)

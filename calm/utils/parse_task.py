@@ -58,7 +58,7 @@ def parse_task(args, cfg, cfg_train, sim_params):
     device_id = args.device_id
     rl_device = args.rl_device
 
-    cfg["seed"] = cfg_train.get("seed", -1)
+    cfg["seed"] = cfg_train.get("seed", -1) # 貌似有bug 应该是cfg_train["params"].get("seed", -1)
     cfg_task = cfg["env"]
     cfg_task["seed"] = cfg["seed"]
 
@@ -69,7 +69,7 @@ def parse_task(args, cfg, cfg_train, sim_params):
             physics_engine=args.physics_engine,
             device_type=args.device,
             device_id=device_id,
-            headless=args.headless)
+            headless=args.headless) # 生成args.task对象
     except NameError as e:
         print(e)
         warn_task_name()
