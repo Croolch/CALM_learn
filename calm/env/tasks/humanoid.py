@@ -41,6 +41,7 @@ from env.tasks.base_task import BaseTask
 
 class Humanoid(BaseTask):
     def __init__(self, cfg, sim_params, physics_engine, device_type, device_id, headless):
+        '''创建sim，env，character，target，设置相应的属性'''
         self.cfg = cfg
         self.sim_params = sim_params
         self.physics_engine = physics_engine
@@ -69,7 +70,7 @@ class Humanoid(BaseTask):
         self.cfg["headless"] = headless
          
         super().__init__(cfg=self.cfg)
-        
+        # 不懂这下面都在干吗
         self.dt = self.control_freq_inv * sim_params.dt
         
         # get gym GPU state tensors
@@ -80,7 +81,7 @@ class Humanoid(BaseTask):
         contact_force_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
 
         sensors_per_env = 2
-        self.vec_sensor_tensor = gymtorch.wrap_tensor(sensor_tensor).view(self.num_envs, sensors_per_env * 6)
+        self.vec_sensor_tensor = gymtorch.wrap_tensor(sensor_tensor).view(self.num_envs, sensors_per_env * 6) # view 等于reshape
 
         dof_force_tensor = self.gym.acquire_dof_force_tensor(self.sim)
         self.dof_force_tensor = gymtorch.wrap_tensor(dof_force_tensor).view(self.num_envs, self.num_dof)
@@ -95,12 +96,12 @@ class Humanoid(BaseTask):
         
         self._humanoid_root_states = self._root_states.view(self.num_envs, num_actors, actor_root_state.shape[-1])[..., 0, :]
         self._initial_humanoid_root_states = self._humanoid_root_states.clone()
-        self._initial_humanoid_root_states[:, 7:13] = 0
+        self._initial_humanoid_root_states[:, 7:13] = 0 # 为什么改成0了 7:13是下半身的位置
 
-        self._humanoid_actor_ids = num_actors * torch.arange(self.num_envs, device=self.device, dtype=torch.int32)
+        self._humanoid_actor_ids = num_actors * torch.arange(self.num_envs, device=self.device, dtype=torch.int32) #为什么* num_actors
 
         # create some wrapper tensors for different slices
-        self._dof_state = gymtorch.wrap_tensor(dof_state_tensor)
+        self._dof_state = gymtorch.wrap_tensor(dof_state_tensor) # pytorch tensor to gymtorch tensor
         dofs_per_env = self._dof_state.shape[0] // self.num_envs
         self._dof_pos = self._dof_state.view(self.num_envs, dofs_per_env, 2)[..., :self.num_dof, 0]
         self._dof_vel = self._dof_state.view(self.num_envs, dofs_per_env, 2)[..., :self.num_dof, 1]
@@ -213,16 +214,17 @@ class Humanoid(BaseTask):
             self._num_obs = 1 + 15 * (3 + 6 + 3 + 3) - 3
             
         elif asset_file == "mjcf/amp_humanoid_sword_shield.xml":
-            self._dof_body_ids = [1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16]
-            self._dof_offsets = [0, 3, 6, 9, 10, 13, 16, 17, 20, 21, 24, 27, 28, 31]
+            self._dof_body_ids = [1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16] # motor定义了13个joint 还是不懂6 9 10 怎么没了
+            self._dof_offsets = [0, 3, 6, 9, 10, 13, 16, 17, 20, 21, 24, 27, 28, 31] # motor的单个joint的dof的分组
             self._dof_obs_size = 78
             self._num_actions = 31
-            self._num_obs = 1 + 17 * (3 + 6 + 3 + 3) - 3
+            self._num_obs = 1 + 17 * (3 + 6 + 3 + 3) - 3 # 不知道什么含义
 
         else:
             print("Unsupported character config file: {s}".format(asset_file))
             assert False
-
+        # 不知道是干啥的
+        # 应该是配置角色的一些属性，定义新角色的时候需要修改这里
         return
 
     def _build_termination_heights(self):
@@ -261,7 +263,7 @@ class Humanoid(BaseTask):
         humanoid_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options)
 
         actuator_props = self.gym.get_asset_actuator_properties(humanoid_asset)
-        motor_efforts = [prop.motor_effort for prop in actuator_props]
+        motor_efforts = [prop.motor_effort for prop in actuator_props] # motor_efforts是什么
         
         # create force sensors at the feet
         right_foot_idx = self.gym.find_asset_rigid_body_index(humanoid_asset, "right_foot")
@@ -276,7 +278,7 @@ class Humanoid(BaseTask):
 
         self.torso_index = 0
         self.num_bodies = self.gym.get_asset_rigid_body_count(humanoid_asset)
-        self.num_dof = self.gym.get_asset_dof_count(humanoid_asset)
+        self.num_dof = self.gym.get_asset_dof_count(humanoid_asset) # motor num
         self.num_joints = self.gym.get_asset_joint_count(humanoid_asset)
 
         self.humanoid_handles = []
@@ -285,12 +287,12 @@ class Humanoid(BaseTask):
         self.dof_limits_upper = []
         
         for i in range(self.num_envs):
-            # create env instance
+            # create env instance (character, target)
             env_ptr = self.gym.create_env(self.sim, lower, upper, num_per_row)
             self._build_env(i, env_ptr, humanoid_asset)
             self.envs.append(env_ptr)
 
-        dof_prop = self.gym.get_actor_dof_properties(self.envs[0], self.humanoid_handles[0])
+        dof_prop = self.gym.get_actor_dof_properties(self.envs[0], self.humanoid_handles[0]) # 不懂 可能是motor的属性
         for j in range(self.num_dof):
             if dof_prop['lower'][j] > dof_prop['upper'][j]:
                 self.dof_limits_lower.append(dof_prop['upper'][j])
@@ -308,6 +310,7 @@ class Humanoid(BaseTask):
         return
     
     def _build_env(self, env_id, env_ptr, humanoid_asset):
+        '''创建角色，添加handler'''
         col_group = env_id
         col_filter = self._get_humanoid_collision_filter()
         segmentation_id = 0
@@ -320,13 +323,13 @@ class Humanoid(BaseTask):
 
         humanoid_handle = self.gym.create_actor(env_ptr, humanoid_asset, start_pose, "humanoid", col_group, col_filter, segmentation_id)
 
-        self.gym.enable_actor_dof_force_sensors(env_ptr, humanoid_handle)
+        self.gym.enable_actor_dof_force_sensors(env_ptr, humanoid_handle) # 不懂
 
         for j in range(self.num_bodies):
             self.gym.set_rigid_body_color(env_ptr, humanoid_handle, j, gymapi.MESH_VISUAL, gymapi.Vec3(0.54, 0.85, 0.2))
 
         if self._pd_control:
-            dof_prop = self.gym.get_asset_dof_properties(humanoid_asset)
+            dof_prop = self.gym.get_asset_dof_properties(humanoid_asset) # dof property 不懂
             dof_prop["driveMode"] = gymapi.DOF_MODE_POS
             self.gym.set_actor_dof_properties(env_ptr, humanoid_handle, dof_prop)
 
@@ -335,6 +338,7 @@ class Humanoid(BaseTask):
         return
 
     def _build_pd_action_offset_scale(self):
+        # 调整joint limit 不清楚为什么要调整
         num_joints = len(self._dof_offsets) - 1
         
         lim_low = self.dof_limits_lower.cpu().numpy()
@@ -345,6 +349,7 @@ class Humanoid(BaseTask):
             dof_size = self._dof_offsets[j + 1] - self._dof_offsets[j]
 
             if dof_size == 3:
+                # 取 low high 绝对值的最大值 * 1.2 作为scale
                 curr_low = lim_low[dof_offset:(dof_offset + dof_size)]
                 curr_high = lim_high[dof_offset:(dof_offset + dof_size)]
                 curr_low = np.max(np.abs(curr_low))
@@ -370,7 +375,7 @@ class Humanoid(BaseTask):
                 lim_low[dof_offset] = curr_low
                 lim_high[dof_offset] =  curr_high
 
-        self._pd_action_offset = 0.5 * (lim_high + lim_low)
+        self._pd_action_offset = 0.5 * (lim_high + lim_low) # 3dof 为0 1dof 为0.5 why
         self._pd_action_scale = 0.5 * (lim_high - lim_low)
         self._pd_action_offset = to_torch(self._pd_action_offset, device=self.device)
         self._pd_action_scale = to_torch(self._pd_action_scale, device=self.device)

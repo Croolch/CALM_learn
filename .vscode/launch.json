@@ -26,8 +26,7 @@
                 "--llc_checkpoint",
                 "calm/data/models/calm_llc_reallusion_sword_shield.pth",
                 "--checkpoint",
-                "calm/data/models/calm_hlc_precision_trained_reallusion_sword_shield.pth",
-                "--headless"
+                "calm/data/models/calm_hlc_precision_trained_reallusion_sword_shield.pth"
             ]
         }
     ]

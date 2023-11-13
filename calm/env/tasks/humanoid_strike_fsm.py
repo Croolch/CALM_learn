@@ -64,10 +64,10 @@ class HumanoidStrikeFSM(HumanoidStrike):
         self._stay_idle = torch.zeros([self.num_envs], device=self.device, dtype=torch.float)
         self._tar_height = torch.zeros([self.num_envs], device=self.device, dtype=torch.long)
 
-        self.movement_type = MovementType[cfg["env"]["movementType"].upper()]
-        self.attack_type = AttackType[cfg["env"]["attackType"].upper()]
+        self.movement_type = MovementType[cfg["env"]["movementType"].upper()] # 移动方式
+        self.attack_type = AttackType[cfg["env"]["attackType"].upper()] # 攻击方式
 
-        self.motions_dict = {
+        self.motions_dict = { # 可能是控制动作权重
             AttackType.KICK: {
                 MovementType.RUN: 50,
                 MovementType.WALK: 11,
@@ -93,7 +93,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
         self._idle_index = 7
         self._strike_index = self.attack_type.value
 
-        self._enable_early_termination = False
+        self._enable_early_termination = False #提前终止什么
         self._near_prob = 0
 
         self._tar_dist_min = 10.0
@@ -107,7 +107,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
     def get_task_obs_size(self):
         obs_size = 0
         if self._enable_task_obs:
-            obs_size = 3
+            obs_size = 3 # 为什么返回3
 
         return obs_size
 

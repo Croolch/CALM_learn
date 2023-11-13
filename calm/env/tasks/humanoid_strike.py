@@ -67,7 +67,7 @@ class HumanoidStrike(humanoid_amp_task.HumanoidAMPTask):
 
     def _create_envs(self, num_envs, spacing, num_per_row):
         self._target_handles = []
-        self._load_target_asset()
+        self._load_target_asset() # 创建strike_target
 
         super()._create_envs(num_envs, spacing, num_per_row)
         return
@@ -82,16 +82,17 @@ class HumanoidStrike(humanoid_amp_task.HumanoidAMPTask):
         asset_file = "strike_target.urdf"
 
         asset_options = gymapi.AssetOptions()
-        asset_options.angular_damping = 0.01
+        asset_options.angular_damping = 0.01 # target为什么需要这些参数
         asset_options.linear_damping = 0.01
         asset_options.max_angular_velocity = 100.0
         asset_options.density = 30.0
-        asset_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+        asset_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE # 什么是drivemode
 
         self._target_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options)
         return
 
     def _build_target(self, env_id, env_ptr):
+        '''创建strike_target'''
         col_group = env_id
         col_filter = 0
         segmentation_id = 0
@@ -119,15 +120,15 @@ class HumanoidStrike(humanoid_amp_task.HumanoidAMPTask):
         return body_ids
 
     def _build_target_tensors(self):
-        num_actors = self.get_num_actors_per_env()
-        self._target_states = self._root_states.view(self.num_envs, num_actors, self._root_states.shape[-1])[..., 1, :]
+        num_actors = self.get_num_actors_per_env() # 一个环境有两个，character和target？
+        self._target_states = self._root_states.view(self.num_envs, num_actors, self._root_states.shape[-1])[..., 1, :] # ...表示前面所有维度 :表示单个维度所有值
 
         self._tar_actor_ids = to_torch(num_actors * np.arange(self.num_envs), device=self.device, dtype=torch.int32) + 1
 
         bodies_per_env = self._rigid_body_state.shape[0] // self.num_envs
         contact_force_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
         contact_force_tensor = gymtorch.wrap_tensor(contact_force_tensor)
-        self._tar_contact_forces = contact_force_tensor.view(self.num_envs, bodies_per_env, 3)[..., self.num_bodies, :]
+        self._tar_contact_forces = contact_force_tensor.view(self.num_envs, bodies_per_env, 3)[..., self.num_bodies, :] # 最后一个body是左脚？
 
         return
 

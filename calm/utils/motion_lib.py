@@ -59,6 +59,7 @@ if not USE_CACHE:
 
 class DeviceCache:
     def __init__(self, obj, device):
+        '''把object的所有属性中的tensor和numpy array转移到device上，返回完成转移的数量'''
         self.obj = obj
         self.device = device
 
@@ -68,7 +69,7 @@ class DeviceCache:
             try:
                 out = getattr(obj, k)
             except:
-                print("Error for key=", k)
+                print("Error for key=", k) # 应该是load motion的时候出错了
                 continue
 
             if isinstance(out, torch.Tensor):
@@ -159,7 +160,7 @@ class MotionLib(DeviceDtypeModuleMixin):
             "key_body_ids",
             torch.tensor(key_body_ids, dtype=torch.long, device=device),
             persistent=False,
-        )
+        ) # 注册缓冲区，不参与训练，persistent=False表示不会被保存到checkpoint中
 
         self._key_body_ids = torch.tensor(key_body_ids, device=device)
         self._device = device
@@ -211,11 +212,11 @@ class MotionLib(DeviceDtypeModuleMixin):
         )
 
         lengths = self.state.motion_num_frames
-        lengths_shifted = lengths.roll(1)
-        lengths_shifted[0] = 0
+        lengths_shifted = lengths.roll(1) # 元素向后移动一位，第一个元素变为最后一个元素
+        lengths_shifted[0] = 0 # 第一个（最后一个）帧数置为0 为什么？？
         self.register_buffer(
             "length_starts", lengths_shifted.cumsum(0), persistent=False
-        )
+        ) # cumsum计算张量的累积和？不懂这个dim的概念，我以为是单个值，但是这里是一个张量
 
         self.register_buffer(
             "motion_ids",
@@ -369,7 +370,7 @@ class MotionLib(DeviceDtypeModuleMixin):
         self._motion_lengths = torch.tensor(self._motion_lengths, device=self._device, dtype=torch.float32)
 
         self._motion_weights = torch.tensor(self._motion_weights, dtype=torch.float32, device=self._device)
-        self._motion_weights /= self._motion_weights.sum()
+        self._motion_weights /= self._motion_weights.sum() # motion权重归一化
 
         self._motion_fps = torch.tensor(self._motion_fps, device=self._device, dtype=torch.float32)
         self._motion_dt = torch.tensor(self._motion_dt, device=self._device, dtype=torch.float32)
@@ -438,14 +439,14 @@ class MotionLib(DeviceDtypeModuleMixin):
         dt = 1.0 / motion.fps
         dof_vels = []
 
-        for f in range(num_frames - 1):
+        for f in range(num_frames - 1): # 求速度，所以最后一帧没有下一帧了
             local_rot0 = motion.local_rotation[f]
             local_rot1 = motion.local_rotation[f + 1]
             frame_dof_vel = self._local_rotation_to_dof_vel(local_rot0, local_rot1, dt)
             frame_dof_vel = frame_dof_vel
             dof_vels.append(frame_dof_vel)
         
-        dof_vels.append(dof_vels[-1])
+        dof_vels.append(dof_vels[-1]) # 缺少一帧，用最后一帧的速度代替
         dof_vels = torch.stack(dof_vels, dim=0)
 
         return dof_vels
@@ -481,13 +482,14 @@ class MotionLib(DeviceDtypeModuleMixin):
         return dof_pos
 
     def _local_rotation_to_dof_vel(self, local_rot0, local_rot1, dt):
+        '''把motion的帧之间的rotation转为dof的angular velocity'''
         body_ids = self._dof_body_ids
         dof_offsets = self._dof_offsets
 
         dof_vel = torch.zeros([self._num_dof], device=self._device)
 
-        diff_quat_data = quat_mul_norm(quat_inverse(local_rot0), local_rot1)
-        diff_angle, diff_axis = quat_angle_axis(diff_quat_data)
+        diff_quat_data = quat_mul_norm(quat_inverse(local_rot0), local_rot1) # 一个四元数和它的逆四元数相乘，结果是一个单位四元数，表示没有旋转。表示从local_rot0到local_rot1的旋转
+        diff_angle, diff_axis = quat_angle_axis(diff_quat_data) # 四元数转为轴角表示
         local_vel = diff_axis * diff_angle.unsqueeze(-1) / dt
         local_vel = local_vel
 

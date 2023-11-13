@@ -35,8 +35,8 @@ class BaseTask:
 
         # double check!
         self.graphics_device_id = self.device_id
-        if enable_camera_sensors == False and self.headless == True:
-            self.graphics_device_id = -1
+        if enable_camera_sensors == False and self.headless == True: # camera sensor是啥
+            self.graphics_device_id = -1 # 为啥变成-1了
 
         self.num_envs = cfg["env"]["numEnvs"]
         self.num_obs = cfg["env"]["numObservations"]
@@ -49,7 +49,7 @@ class BaseTask:
         torch._C._jit_set_profiling_mode(False)
         torch._C._jit_set_profiling_executor(False)
 
-        # allocate buffers
+        # allocate buffers 这个是啥
         self.obs_buf = torch.zeros(
             (self.num_envs, self.num_obs), device=self.device, dtype=torch.float)
         self.states_buf = torch.zeros(

@@ -45,6 +45,7 @@ class HumanoidAMP(Humanoid):
         Hybrid = 3
 
     def __init__(self, cfg, sim_params, physics_engine, device_type, device_id, headless):
+        '''加载motions'''
         state_init = cfg["env"]["stateInit"]
         self._state_init = HumanoidAMP.StateInit[state_init]
         self._hybrid_init_prob = cfg["env"]["hybridInitProb"]
@@ -196,6 +197,7 @@ class HumanoidAMP(Humanoid):
     def _setup_character_props(self, key_bodies):
         super()._setup_character_props(key_bodies)
 
+        # 对角色额外增加了观测 不知道这些数值什么含义
         asset_file = self.cfg["env"]["asset"]["assetFileName"]
         num_key_bodies = len(key_bodies)
 
@@ -210,7 +212,8 @@ class HumanoidAMP(Humanoid):
         return
 
     def _load_motion(self, motion_file):
-        assert(self._dof_offsets[-1] == self.num_dof)
+        '''把所有的motion以及计算的pos vel等信息都存储在motion_lib中，然后在这里通过motion_lib来获取motion的信息'''
+        assert(self._dof_offsets[-1] == self.num_dof) # 没懂这个判断，可能是确保关节和dof数量的
         self._motion_lib = MotionLib(motion_file=motion_file,
                                      dof_body_ids=self._dof_body_ids,
                                      dof_offsets=self._dof_offsets,

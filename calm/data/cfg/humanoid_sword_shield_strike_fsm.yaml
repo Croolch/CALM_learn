@@ -7,12 +7,12 @@ env: # 似乎是task的配置
   enableDebugVis: False
   
   pdControl: True
-  powerScale: 1.0
+  powerScale: 1.0 # 不知道是啥
   controlFrequencyInv: 2 # 30 Hz
   stateInit: "Default" # default是啥
-  hybridInitProb: 0.5
-  numAMPObsSteps: 10
-  numAMPEncObsSteps: 60
+  hybridInitProb: 0.5 # 不知道是啥
+  numAMPObsSteps: 10 # 不知道是啥
+  numAMPEncObsSteps: 60 # 不知道是啥
   
   localRootObs: True
   keyBodies: ["right_hand", "left_hand", "right_foot", "left_foot", "sword", "shield"]
@@ -20,8 +20,8 @@ env: # 似乎是task的配置
   terminationHeight: 0.15
   enableEarlyTermination: True
 
-  movementType: run
-  attackType: kick
+  movementType: walk # 控制agent的移动方式
+  attackType: kick # 控制agent的攻击方式
 
   strikeBodyNames: ["sword", "right_hand", "right_lower_arm"]
   enableTaskObs: True
@@ -30,7 +30,7 @@ env: # 似乎是task的配置
     assetRoot: "calm/data/assets"
     assetFileName: "mjcf/amp_humanoid_sword_shield.xml"
 
-  plane:
+  plane: # 地面的配置
     staticFriction: 1.0
     dynamicFriction: 1.0
     restitution: 0.0
