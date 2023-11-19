@@ -81,9 +81,11 @@ class Humanoid(BaseTask):
         contact_force_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
 
         sensors_per_env = 2
+
+        # wrap tensor之后才能修改tensor的值，因为返回的是tensor descriptor, 是raw storage buffers
         self.vec_sensor_tensor = gymtorch.wrap_tensor(sensor_tensor).view(self.num_envs, sensors_per_env * 6) # view 等于reshape
 
-        dof_force_tensor = self.gym.acquire_dof_force_tensor(self.sim)
+        dof_force_tensor = self.gym.acquire_dof_force_tensor(self.sim) # dof来自所有joint提供的自由度，每个dof两个参数pos vel，值为float单位为meters或radians根据dof的分类linear和angular
         self.dof_force_tensor = gymtorch.wrap_tensor(dof_force_tensor).view(self.num_envs, self.num_dof)
         
         self.gym.refresh_dof_state_tensor(self.sim)

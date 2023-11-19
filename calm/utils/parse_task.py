@@ -53,7 +53,7 @@ def warn_task_name():
 
 
 def parse_task(args, cfg, cfg_train, sim_params):
-
+    '''实例化自定义的task，定义vec env'''
     # create native task and pass custom config
     device_id = args.device_id
     rl_device = args.rl_device

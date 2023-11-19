@@ -269,7 +269,7 @@ class HRLPlayer(common_player.CommonPlayer):
 
     def _setup_action_space(self):
         super()._setup_action_space()
-        self.actions_num = self._latent_dim
+        self.actions_num = self._latent_dim # 不懂
         return
 
     def _compute_llc_action(self, obs, actions):

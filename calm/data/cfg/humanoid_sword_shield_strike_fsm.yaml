@@ -8,7 +8,7 @@ env: # 似乎是task的配置
   
   pdControl: True
   powerScale: 1.0 # 不知道是啥
-  controlFrequencyInv: 2 # 30 Hz
+  controlFrequencyInv: 2 # 30 Hz  control decimation, ie. how many simulator steps between RL actions. Defaults to 1.
   stateInit: "Default" # default是啥
   hybridInitProb: 0.5 # 不知道是啥
   numAMPObsSteps: 10 # 不知道是啥

@@ -28,8 +28,8 @@ class VecTask:
         self.state_space = spaces.Box(np.ones(self.num_states) * -np.Inf, np.ones(self.num_states) * np.Inf)
         self.act_space = spaces.Box(np.ones(self.num_actions) * -1., np.ones(self.num_actions) * 1.)
 
-        self.clip_obs = clip_observations
-        self.clip_actions = clip_actions
+        self.clip_obs = clip_observations # clip obs？
+        self.clip_actions = clip_actions # clip 是什么作用？
         self.rl_device = rl_device
 
         print("RL device: ", rl_device)

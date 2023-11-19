@@ -108,7 +108,7 @@ params:
     enable_eps_greedy: True
     negative_disc_samples: False
 
-    latent_dim: 64
+    latent_dim: 64 # 什么
     latent_steps_min: 10
     latent_steps_max: 150
 

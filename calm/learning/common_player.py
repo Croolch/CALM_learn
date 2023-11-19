@@ -38,8 +38,8 @@ import numpy as np
 
 class CommonPlayer(players.PpoPlayerContinuous):
     def __init__(self, config):
-        BasePlayer.__init__(self, config)
-        self.network = config['network']
+        BasePlayer.__init__(self, config) # 应该看看rlgames的player的说明
+        self.network = config['network'] # network object
         
         self._setup_action_space()
         self.mask = [False]
@@ -202,7 +202,7 @@ class CommonPlayer(players.PpoPlayerContinuous):
         return
 
     def _build_net_config(self):
-        obs_shape = torch_ext.shape_whc_to_cwh(self.obs_shape)
+        obs_shape = torch_ext.shape_whc_to_cwh(self.obs_shape) # 处理图像数据？
         config = {
             'actions_num' : self.actions_num,
             'input_shape' : obs_shape,

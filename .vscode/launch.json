@@ -16,7 +16,7 @@
                 "--task",
                 "HumanoidStrikeFSM",
                 "--num_envs",
-                "2",
+                "5",
                 "--cfg_env",
                 "calm/data/cfg/humanoid_sword_shield_strike_fsm.yaml",
                 "--cfg_train",
