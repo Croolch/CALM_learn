@@ -186,7 +186,7 @@ class CommonPlayer(players.PpoPlayerContinuous):
     def _build_net(self, config):
         self.model = self.network.build(config)
         self.model.to(self.device)
-        self.model.eval()
+        self.model.eval() # evaluation模式是什么
         self.is_rnn = self.model.is_rnn()
         if self.normalize_input:
             obs_shape = torch_ext.shape_whc_to_cwh(self.obs_shape)

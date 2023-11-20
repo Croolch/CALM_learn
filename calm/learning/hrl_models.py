@@ -36,7 +36,7 @@ class ModelHRLContinuous(ModelA2CContinuousLogStd):
 
     def build(self, config):
         net = self.network_builder.build('calm', **config)
-        for name, _ in net.named_parameters():
+        for name, _ in net.named_parameters(): # net parameters具体是什么？
             print(name)
         return ModelHRLContinuous.Network(net)
 

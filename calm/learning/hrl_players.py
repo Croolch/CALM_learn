@@ -254,9 +254,9 @@ class HRLPlayer(common_player.CommonPlayer):
         llc_env_info = copy.deepcopy(self.env_info)
         obs_space = llc_env_info['observation_space']
         obs_size = obs_space.shape[0]
-        obs_size -= self._task_size
+        obs_size -= self._task_size # 为什么减去tasksize
         llc_env_info['observation_space'] = spaces.Box(obs_space.low[:obs_size], obs_space.high[:obs_size])
-        llc_env_info['amp_observation_space'] = self.env.amp_observation_space.shape
+        llc_env_info['amp_observation_space'] = self.env.amp_observation_space.shape # amp obs 与 obs的区别
         llc_env_info['num_envs'] = self.env.task.num_envs
         llc_env_info['num_amp_obs_steps'] = self.env.task._num_amp_obs_steps
 

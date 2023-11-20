@@ -72,6 +72,6 @@ params:
     disc_reward_w: 0.0  # 0.1
     style_reward_w: 0.0
 
-    llc_steps: 5
+    llc_steps: 5 # 含义是什么
     llc_config: calm/data/cfg/train/rlg/calm_humanoid.yaml #
 
