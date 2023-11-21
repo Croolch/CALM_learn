@@ -75,7 +75,7 @@ class CALMBuilder(amp_network_builder.AMPBuilder):
                 mu_init = self.init_factory.create(**self.space_config['mu_init'])
                 self.sigma_act = self.activations_factory.create(self.space_config['sigma_activation']) 
 
-                sigma_init = self.init_factory.create(**self.space_config['sigma_init'])
+                sigma_init = self.init_factory.create(**self.space_config['sigma_init']) # const -2.9
 
                 if not self.space_config['learn_sigma']:
                     self.sigma = nn.Parameter(torch.zeros(actions_num, requires_grad=False, dtype=torch.float32), requires_grad=False)
@@ -316,7 +316,7 @@ class AMPMLPNet(torch.nn.Module):
             self._mlp.append(activation)
             in_size = unit
 
-        self._mlp = nn.Sequential(*self._mlp)
+        self._mlp = nn.Sequential(*self._mlp) # [317 1024 1024 512]
         self.init_params()
         return
 
@@ -353,8 +353,8 @@ class AMPStyleCatNet1(torch.nn.Module):
         self._style_dim = style_dim
         self._style_activation = torch.tanh
 
-        self._style_mlp = self._build_style_mlp(style_units, ase_latent_size)
-        self._style_dense = torch.nn.Linear(style_units[-1], style_dim)
+        self._style_mlp = self._build_style_mlp(style_units, ase_latent_size) # [64 512 256]
+        self._style_dense = torch.nn.Linear(style_units[-1], style_dim) # [256 64]
 
         in_size = obs_size + style_dim
         for i in range(len(units)):
@@ -365,7 +365,7 @@ class AMPStyleCatNet1(torch.nn.Module):
 
             in_size = out_size
 
-        self._dense_layers = nn.ModuleList(self._dense_layers)
+        self._dense_layers = nn.ModuleList(self._dense_layers) # [317 1024 1024 512]
 
         self.init_params()
 
@@ -396,7 +396,7 @@ class AMPStyleCatNet1(torch.nn.Module):
         scale_init_range = 1.0
 
         for m in self.modules():
-            if isinstance(m, nn.Linear):
+            if isinstance(m, nn.Linear): # 找到网络中的线性层
                 self._initializer(m.weight)
                 if getattr(m, "bias", None) is not None:
                     torch.nn.init.zeros_(m.bias)
