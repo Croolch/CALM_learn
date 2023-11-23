@@ -44,7 +44,7 @@ class HRLFSMPlayer(HRLPlayer):
             motion_time = torch.clamp(
                 torch.clamp(motion_len - self.env.task.dt * self.env.task._num_amp_obs_enc_steps, min=0) / 2 + self.env.task.dt * self.env.task._num_amp_obs_enc_steps,
                 max=motion_len.item()
-            )
+            ) # 为什么要夹起来？
 
             motion_amp_obs = self.env.task.build_amp_obs_demo(
                 torch.tensor([motion_id], device=self.device),

@@ -57,7 +57,7 @@ class CALMBuilder(amp_network_builder.AMPBuilder):
 
             self._num_amp_obs_per_step = amp_input_shape[-1] // self._amp_obs_steps
 
-            actor_out_size, critic_out_size = self._build_actor_critic_net(input_shape, self._calm_latent_shape)
+            actor_out_size, critic_out_size = self._build_actor_critic_net(input_shape, self._calm_latent_shape) # AMPStyleCatNet1 和 AMPMLPNet
 
             self.value = torch.nn.Linear(critic_out_size, self.value_size)
             self.value_act = self.activations_factory.create(self.value_activation)
@@ -120,6 +120,12 @@ class CALMBuilder(amp_network_builder.AMPBuilder):
             self._faiss_gpu_resources = None
             self._faiss_index = None
 
+            # print calm_network
+            print(" ")
+            print("----calm_network----")
+            print(self)
+            print("----calm_network----")
+            print(" ")
             return
         
         def load(self, params):
@@ -163,6 +169,10 @@ class CALMBuilder(amp_network_builder.AMPBuilder):
             return disc_logits
 
         def _build_conditional_disc(self, input_shape, calm_latent_shape):
+            '''
+            构建conditional_discriminator
+            AMPStyleCatNet1
+            '''
             style_units = [512, 256]
             style_dim = calm_latent_shape[-1]
 
@@ -224,6 +234,11 @@ class CALMBuilder(amp_network_builder.AMPBuilder):
             return
 
         def _build_actor_critic_net(self, input_shape, calm_latent_shape):
+            '''
+            构建actor和critic网络
+            AMPStyleCatNet1 
+            AMPMLPNet
+            '''
             style_units = [512, 256]
             style_dim = calm_latent_shape[-1]
 
@@ -401,7 +416,7 @@ class AMPStyleCatNet1(torch.nn.Module):
                 if getattr(m, "bias", None) is not None:
                     torch.nn.init.zeros_(m.bias)
 
-        nn.init.uniform_(self._style_dense.weight, -scale_init_range, scale_init_range)
+        nn.init.uniform_(self._style_dense.weight, -scale_init_range, scale_init_range) # _style_dense是最后一层吗，初始化为-1到1之间的均匀分布
         return
 
     def get_out_size(self):

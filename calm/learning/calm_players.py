@@ -51,13 +51,13 @@ class CALMPlayer(amp_players.AMPPlayerContinuous):
         if 'env' in config:
             self.env = config['env']
 
-        super().__init__(config)
+        super().__init__(config) # build net
 
         if hasattr(self, 'env'):
             batch_size = self.env.task.num_envs
         else:
             batch_size = self.env_info['num_envs']
-        self._calm_latents = torch.zeros((batch_size, self._latent_dim), dtype=torch.float32, device=self.device)
+        self._calm_latents = torch.zeros((batch_size, self._latent_dim), dtype=torch.float32, device=self.device) # 所有环境的latent
 
         if self._interpolate_latents is True:
             self._latents0 = torch.zeros((batch_size, self._latent_dim), dtype=torch.float32, device=self.device)

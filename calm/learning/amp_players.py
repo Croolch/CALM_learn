@@ -46,6 +46,7 @@ class AMPPlayerContinuous(common_player.CommonPlayer):
         if fn != 'Base':
             super().restore(fn)
             if self._normalize_amp_input:
+                print("normalize amp input")
                 checkpoint = torch_ext.load_checkpoint(fn)
                 self._amp_input_mean_std.load_state_dict(checkpoint['amp_input_mean_std'])
         return

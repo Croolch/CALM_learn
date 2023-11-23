@@ -13,8 +13,8 @@ params:
 
     space:
       continuous:
-        mu_activation: None
-        sigma_activation: None
+        mu_activation: None # 均值
+        sigma_activation: None # 标准差
         mu_init:
           name: default
         sigma_init:

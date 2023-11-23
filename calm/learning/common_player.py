@@ -47,7 +47,8 @@ class CommonPlayer(players.PpoPlayerContinuous):
         self.normalize_input = self.config['normalize_input']
         
         net_config = self._build_net_config()
-        self._build_net(net_config)   
+        print("building net!!")
+        self._build_net(net_config)
         
         return
 
@@ -186,7 +187,7 @@ class CommonPlayer(players.PpoPlayerContinuous):
     def _build_net(self, config):
         self.model = self.network.build(config)
         self.model.to(self.device)
-        self.model.eval() # evaluation模式是什么
+        self.model.eval() # evaluation not training
         self.is_rnn = self.model.is_rnn()
         if self.normalize_input:
             obs_shape = torch_ext.shape_whc_to_cwh(self.obs_shape)

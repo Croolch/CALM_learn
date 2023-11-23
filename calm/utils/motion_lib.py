@@ -275,28 +275,28 @@ class MotionLib(DeviceDtypeModuleMixin):
         num_frames = self.state.motion_num_frames[motion_ids]
         dt = self.state.motion_dt[motion_ids]
 
-        frame_idx0, frame_idx1, blend = self._calc_frame_blend(motion_times, motion_len, num_frames, dt)
+        frame_idx0, frame_idx1, blend = self._calc_frame_blend(motion_times, motion_len, num_frames, dt) # blend是权重
 
         f0l = frame_idx0 + self.length_starts[motion_ids]
         f1l = frame_idx1 + self.length_starts[motion_ids]
 
-        root_pos0 = self.gts[f0l, 0]
-        root_pos1 = self.gts[f1l, 0]
+        root_pos0 = self.gts[f0l, 0] # 所有的帧的 global root translation
+        root_pos1 = self.gts[f1l, 0] # ...向后移动一帧的...
 
         root_rot0 = self.grs[f0l, 0]
         root_rot1 = self.grs[f1l, 0]
 
-        local_rot0 = self.lrs[f0l]
+        local_rot0 = self.lrs[f0l] # 所有关节的local rotation
         local_rot1 = self.lrs[f1l]
 
         root_vel = self.grvs[f0l]
 
         root_ang_vel = self.gravs[f0l]
 
-        key_pos0 = self.gts[f0l.unsqueeze(-1), self._key_body_ids.unsqueeze(0)]
+        key_pos0 = self.gts[f0l.unsqueeze(-1), self._key_body_ids.unsqueeze(0)] # key关节的global translation
         key_pos1 = self.gts[f1l.unsqueeze(-1), self._key_body_ids.unsqueeze(0)]
 
-        dof_vel = self.dvs[f0l]
+        dof_vel = self.dvs[f0l] # dof的速度
 
         vals = [root_pos0, root_pos1, local_rot0, local_rot1, root_vel, root_ang_vel, key_pos0, key_pos1]
         for v in vals:
@@ -304,9 +304,9 @@ class MotionLib(DeviceDtypeModuleMixin):
 
         blend = blend.unsqueeze(-1)
 
-        root_pos = (1.0 - blend) * root_pos0 + blend * root_pos1
+        root_pos = (1.0 - blend) * root_pos0 + blend * root_pos1 # 根据权重插值 blend连续的两帧的root translation blend是权重
 
-        root_rot = torch_utils.slerp(root_rot0, root_rot1, blend)
+        root_rot = torch_utils.slerp(root_rot0, root_rot1, blend) # 四元数插值
 
         blend_exp = blend.unsqueeze(-1)
         key_pos = (1.0 - blend_exp) * key_pos0 + blend_exp * key_pos1
@@ -420,12 +420,12 @@ class MotionLib(DeviceDtypeModuleMixin):
 
     def _calc_frame_blend(self, time, len, num_frames, dt):
 
-        phase = time / len
+        phase = time / len # 动画帧时间归一化
         phase = torch.clip(phase, 0.0, 1.0)
 
-        frame_idx0 = (phase * (num_frames - 1)).long()
-        frame_idx1 = torch.min(frame_idx0 + 1, num_frames - 1)
-        blend = (time - frame_idx0 * dt) / dt
+        frame_idx0 = (phase * (num_frames - 1)).long() # 时间转为帧 注意总帧数减一 不去最后一帧
+        frame_idx1 = torch.min(frame_idx0 + 1, num_frames - 1) # 向后移动一帧
+        blend = (time - frame_idx0 * dt) / dt # 确实像误差一样，时间误差除以dt，得到权重
 
         return frame_idx0, frame_idx1, blend
 

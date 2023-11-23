@@ -177,10 +177,10 @@ class HumanoidAMP(Humanoid):
         motion_ids = torch.tile(motion_ids.unsqueeze(-1), [1, num_steps])
         motion_times = motion_times0.unsqueeze(-1)
         time_steps = -dt * torch.arange(0, num_steps, device=self.device)
-        motion_times = torch.clip(motion_times + time_steps, min=0)
+        motion_times = torch.clip(motion_times + time_steps, min=0) 
 
-        motion_ids = motion_ids.view(-1)
-        motion_times = motion_times.view(-1)
+        motion_ids = motion_ids.view(-1) # 展平
+        motion_times = motion_times.view(-1) # 展平 # 倒放60帧动画
         root_pos, root_rot, dof_pos, root_vel, root_ang_vel, dof_vel, key_pos \
             = self._motion_lib.get_motion_state(motion_ids, motion_times)
         amp_obs_demo = build_amp_observations(root_pos, root_rot, root_vel, root_ang_vel,

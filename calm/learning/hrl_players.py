@@ -246,7 +246,7 @@ class HRLPlayer(common_player.CommonPlayer):
 
         self._llc_agent = calm_players.CALMPlayer(llc_agent_config)
 
-        self._llc_agent.restore(checkpoint_file)
+        self._llc_agent.restore(checkpoint_file) # 载入llc的checkpoint
         print("Loaded LLC checkpoint from {:s}".format(checkpoint_file))
         return
 
