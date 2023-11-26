@@ -163,8 +163,9 @@ class HumanoidStrike(humanoid_amp_task.HumanoidAMPTask):
         return
 
     def _reset_env_tensors(self, env_ids):
-        super()._reset_env_tensors(env_ids)
+        super()._reset_env_tensors(env_ids) # reset character
 
+        # reset target 与 root 重叠了
         env_ids_int32 = self._tar_actor_ids[env_ids]
         self.gym.set_actor_root_state_tensor_indexed(self.sim, gymtorch.unwrap_tensor(self._root_states),
                                                      gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))

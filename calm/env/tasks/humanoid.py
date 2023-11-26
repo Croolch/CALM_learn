@@ -98,7 +98,7 @@ class Humanoid(BaseTask):
         
         self._humanoid_root_states = self._root_states.view(self.num_envs, num_actors, actor_root_state.shape[-1])[..., 0, :]
         self._initial_humanoid_root_states = self._humanoid_root_states.clone()
-        self._initial_humanoid_root_states[:, 7:13] = 0 # 为什么改成0了 7:13是下半身的位置
+        self._initial_humanoid_root_states[:, 7:13] = 0 # vel为0
 
         self._humanoid_actor_ids = num_actors * torch.arange(self.num_envs, device=self.device, dtype=torch.int32) #为什么* num_actors
 
@@ -617,9 +617,10 @@ def compute_humanoid_observations(root_pos, root_rot, root_vel, root_ang_vel, do
     obs = torch.cat((root_h_obs, root_rot_obs, local_root_vel, local_root_ang_vel, dof_obs, dof_vel, flat_local_key_pos), dim=-1)
     return obs
 
-@torch.jit.script
+# @torch.jit.script
 def compute_humanoid_observations_max(body_pos, body_rot, body_vel, body_ang_vel, local_root_obs, root_height_obs):
     # type: (Tensor, Tensor, Tensor, Tensor, bool, bool) -> Tensor
+    # 把所有body的pos rot vel ang_vel施加一个旋转，这个旋转来自root的旋转
     root_pos = body_pos[:, 0, :]
     root_rot = body_rot[:, 0, :]
 
@@ -632,20 +633,22 @@ def compute_humanoid_observations_max(body_pos, body_rot, body_vel, body_ang_vel
         root_h_obs = root_h
     
     heading_rot_expand = heading_rot.unsqueeze(-2)
-    heading_rot_expand = heading_rot_expand.repeat((1, body_pos.shape[1], 1))
+    heading_rot_expand = heading_rot_expand.repeat((1, body_pos.shape[1], 1)) # 所有body要施加一个旋转？
     flat_heading_rot = heading_rot_expand.reshape(heading_rot_expand.shape[0] * heading_rot_expand.shape[1], 
                                                heading_rot_expand.shape[2])
     
     root_pos_expand = root_pos.unsqueeze(-2)
-    local_body_pos = body_pos - root_pos_expand
+    local_body_pos = body_pos - root_pos_expand # 各body以root为原点的local pos
     flat_local_body_pos = local_body_pos.reshape(local_body_pos.shape[0] * local_body_pos.shape[1], local_body_pos.shape[2])
-    flat_local_body_pos = quat_rotate(flat_heading_rot, flat_local_body_pos)
+    # 单位长度的四元数·三维坐标·这个四元数的逆，它表示三维空间中物体绕某一轴的旋转。
+    # 这个四元数的三个维度表示一个空间向量，代表轴的朝向，然后这个空间向量的模长与另一个维度的值的比值的反正切为你要旋转的角度的一半。q=((x,y,z)sinθ/2, cosθ/2)
+    flat_local_body_pos = quat_rotate(flat_heading_rot, flat_local_body_pos) # 旋转之后的body pos
     local_body_pos = flat_local_body_pos.reshape(local_body_pos.shape[0], local_body_pos.shape[1] * local_body_pos.shape[2])
     local_body_pos = local_body_pos[..., 3:] # remove root pos
 
     flat_body_rot = body_rot.reshape(body_rot.shape[0] * body_rot.shape[1], body_rot.shape[2])
-    flat_local_body_rot = quat_mul(flat_heading_rot, flat_body_rot)
-    flat_local_body_rot_obs = torch_utils.quat_to_tan_norm(flat_local_body_rot)
+    flat_local_body_rot = quat_mul(flat_heading_rot, flat_body_rot) # 施加旋转后的旋转
+    flat_local_body_rot_obs = torch_utils.quat_to_tan_norm(flat_local_body_rot) # 旋转转为切向量
     local_body_rot_obs = flat_local_body_rot_obs.reshape(body_rot.shape[0], body_rot.shape[1] * flat_local_body_rot_obs.shape[1])
     
     if not local_root_obs:
@@ -660,6 +663,7 @@ def compute_humanoid_observations_max(body_pos, body_rot, body_vel, body_ang_vel
     flat_local_body_ang_vel = quat_rotate(flat_heading_rot, flat_body_ang_vel)
     local_body_ang_vel = flat_local_body_ang_vel.reshape(body_ang_vel.shape[0], body_ang_vel.shape[1] * body_ang_vel.shape[2])
     
+    # 1 + 16*3 + 17*6 + 17*3 + 17*3
     obs = torch.cat((root_h_obs, local_body_pos, local_body_rot_obs, local_body_vel, local_body_ang_vel), dim=-1)
     return obs
 

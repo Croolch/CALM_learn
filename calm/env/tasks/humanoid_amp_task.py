@@ -77,10 +77,10 @@ class HumanoidAMPTask(humanoid_amp.HumanoidAMP):
         return
 
     def _compute_observations(self, env_ids=None):
-        humanoid_obs = self._compute_humanoid_obs(env_ids)
+        humanoid_obs = self._compute_humanoid_obs(env_ids) # 253 body应用root旋转，返回 root_h body_pos body_vel body_rot（6维） body_ang_vel
         
         if self._enable_task_obs:
-            task_obs = self._compute_task_obs(env_ids)
+            task_obs = self._compute_task_obs(env_ids) # 3 target与root之间旋转的vec
             obs = torch.cat([humanoid_obs, task_obs], dim=-1)
         else:
             obs = humanoid_obs
@@ -88,7 +88,7 @@ class HumanoidAMPTask(humanoid_amp.HumanoidAMP):
         if env_ids is None:
             self.obs_buf[:] = obs
         else:
-            self.obs_buf[env_ids] = obs
+            self.obs_buf[env_ids] = obs # 更新obs_buf
         return
 
     def _compute_task_obs(self, env_ids=None):

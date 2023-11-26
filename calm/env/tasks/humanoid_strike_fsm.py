@@ -96,7 +96,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
         self._enable_early_termination = False #提前终止什么
         self._near_prob = 0
 
-        self._tar_dist_min = 10.0
+        self._tar_dist_min = 10.0 # target的距离 reset会随机
         self._tar_dist_max = 10.0
 
         self._total_episodes = None
@@ -144,21 +144,21 @@ class HumanoidStrikeFSM(HumanoidStrike):
                                                                  device=self._target_states.device) + self._tar_dist_min
 
         rand_theta = 2 * np.pi * torch.rand([n], dtype=self._target_states.dtype, device=self._target_states.device)
-        self._target_states[env_ids, 0] = rand_dist * torch.cos(rand_theta) + self._humanoid_root_states[env_ids, 0]
-        self._target_states[env_ids, 1] = rand_dist * torch.sin(rand_theta) + self._humanoid_root_states[env_ids, 1]
-        self._target_states[env_ids, 2] = 0.9
+        self._target_states[env_ids, 0] = rand_dist * torch.cos(rand_theta) + self._humanoid_root_states[env_ids, 0] # 基于root的位置设置target的位置x轴
+        self._target_states[env_ids, 1] = rand_dist * torch.sin(rand_theta) + self._humanoid_root_states[env_ids, 1] # ...y轴
+        self._target_states[env_ids, 2] = 0.9 # z轴 高度
 
         rand_rot_theta = 2 * np.pi * torch.rand([n], dtype=self._target_states.dtype, device=self._target_states.device)
         axis = torch.tensor([0.0, 0.0, 1.0], dtype=self._target_states.dtype, device=self._target_states.device)
-        rand_rot = quat_from_angle_axis(rand_rot_theta, axis)
+        rand_rot = quat_from_angle_axis(rand_rot_theta, axis) # random的target local rotation
 
         self._target_states[env_ids, 3:7] = rand_rot
-        self._target_states[env_ids, 7:10] = 0.0
-        self._target_states[env_ids, 10:13] = 0.0
+        self._target_states[env_ids, 7:10] = 0.0 # vel
+        self._target_states[env_ids, 10:13] = 0.0 
         self._should_strike[env_ids] = 0
         self._stay_idle[env_ids] = 0
 
-        self._tar_height[env_ids] = self.movement_type.value
+        self._tar_height[env_ids] = self.movement_type.value # target height？ 为什么不再state里改？
         return
 
     def _compute_task_obs(self, env_ids=None):
@@ -166,9 +166,9 @@ class HumanoidStrikeFSM(HumanoidStrike):
         tar_pos = self._target_states[..., 0:3]
         tar_rot = self._target_states[..., 3:7]
 
-        pos_diff = tar_pos[..., 0:2] - root_pos[..., 0:2]
+        pos_diff = tar_pos[..., 0:2] - root_pos[..., 0:2] # xy平面的
 
-        pos_err = torch.sum(pos_diff * pos_diff, dim=-1)
+        pos_err = torch.sum(pos_diff * pos_diff, dim=-1) # 平方和
 
         strike_distance = self.motions_dict[self.attack_type][self.movement_type]
         if self.movement_type == MovementType.RUN:
@@ -176,7 +176,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
             self._tar_height[dist_mask] = MovementType.WALK.value
             strike_distance = self.motions_dict[self.attack_type][MovementType.WALK]
 
-        dist_mask = pos_err < strike_distance
+        dist_mask = pos_err < strike_distance # 根据target与root的距离判断是否strike
         self._should_strike[dist_mask] = 1
         dist_mask = pos_err >= strike_distance
         self._should_strike[dist_mask] = 0
@@ -198,7 +198,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
             tar_states = self._target_states[env_ids]
             tar_height = self._tar_height[env_ids]
 
-        obs = compute_strike_heading_observations(root_states, tar_states, tar_height)
+        obs = compute_strike_heading_observations(root_states, tar_states, tar_height) # 在target施加相对root的旋转后的的方向vec
 
         return obs
 
@@ -245,7 +245,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
 ###=========================jit functions=========================###
 #####################################################################
 
-@torch.jit.script
+# @torch.jit.script
 def compute_strike_heading_observations(root_states, tar_pos, tar_height):
     # type: (Tensor, Tensor, Tensor) -> Tensor
     root_pos = root_states[:, 0:3]
@@ -254,11 +254,11 @@ def compute_strike_heading_observations(root_states, tar_pos, tar_height):
     tar_vec = tar_pos[..., 0:2] - root_pos[..., 0:2]
 
     tar_dir = torch.nn.functional.normalize(tar_vec, dim=-1)
-    heading_theta = torch.atan2(tar_dir[..., 1], tar_dir[..., 0])
+    heading_theta = torch.atan2(tar_dir[..., 1], tar_dir[..., 0]) # 旋转角
     tar_dir = torch.stack([torch.cos(heading_theta), torch.sin(heading_theta)], dim=-1)
 
     tar_dir3d = torch.cat([tar_dir, torch.zeros_like(tar_dir[..., 0:1])], dim=-1)
-    heading_rot = torch_utils.calc_heading_quat_inv(root_rot)
+    heading_rot = torch_utils.calc_heading_quat_inv(root_rot) # 旋转四元数
 
     local_tar_dir = quat_rotate(heading_rot, tar_dir3d)
     local_tar_dir = local_tar_dir[..., 0:2]

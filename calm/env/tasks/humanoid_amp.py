@@ -380,12 +380,12 @@ class HumanoidAMP(Humanoid):
 ###=========================jit functions=========================###
 #####################################################################
 
-@torch.jit.script
+# @torch.jit.script
 def build_amp_observations(root_pos, root_rot, root_vel, root_ang_vel, dof_pos, dof_vel, key_body_pos, 
                            local_root_obs, root_height_obs, dof_obs_size, dof_offsets):
     # type: (Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, bool, bool, int, List[int]) -> Tensor
     root_h = root_pos[:, 2:3]
-    heading_rot = torch_utils.calc_heading_quat_inv(root_rot)
+    heading_rot = torch_utils.calc_heading_quat_inv(root_rot) # root rot的逆向旋转
 
     if local_root_obs:
         root_rot_obs = quat_mul(heading_rot, root_rot)
@@ -409,7 +409,7 @@ def build_amp_observations(root_pos, root_rot, root_vel, root_ang_vel, dof_pos, 
     flat_end_pos = local_key_body_pos.view(local_key_body_pos.shape[0] * local_key_body_pos.shape[1], local_key_body_pos.shape[2])
     flat_heading_rot = heading_rot_expand.view(heading_rot_expand.shape[0] * heading_rot_expand.shape[1], 
                                                heading_rot_expand.shape[2])
-    local_end_pos = quat_rotate(flat_heading_rot, flat_end_pos)
+    local_end_pos = quat_rotate(flat_heading_rot, flat_end_pos) # key bodypos施加旋转
     flat_local_key_pos = local_end_pos.view(local_key_body_pos.shape[0], local_key_body_pos.shape[1] * local_key_body_pos.shape[2])
     
     dof_obs = dof_to_obs(dof_pos, dof_obs_size, dof_offsets)

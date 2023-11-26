@@ -114,6 +114,7 @@ def exp_map_to_angle_axis(exp_map):
 
 @torch.jit.script
 def exp_map_to_quat(exp_map):
+    # e = angle * axis，e的模为angle因为axis为单位向量，e的归一化为axis，旋转轴的三维向量
     angle, axis = exp_map_to_angle_axis(exp_map)
     q = quat_from_angle_axis(angle, axis)
     return q
@@ -142,7 +143,7 @@ def slerp(q0, q1, t):
 
     return new_q
 
-@torch.jit.script
+# @torch.jit.script
 def calc_heading(q):
     # type: (Tensor) -> Tensor
     # calculate heading direction from quaternion
@@ -150,9 +151,9 @@ def calc_heading(q):
     # q must be normalized
     ref_dir = torch.zeros_like(q[..., 0:3])
     ref_dir[..., 0] = 1
-    rot_dir = quat_rotate(q, ref_dir)
+    rot_dir = quat_rotate(q, ref_dir) # 沿着x轴旋转
 
-    heading = torch.atan2(rot_dir[..., 1], rot_dir[..., 0])
+    heading = torch.atan2(rot_dir[..., 1], rot_dir[..., 0]) # 旋转后的xy平面的angle
     return heading
 
 @torch.jit.script
@@ -168,15 +169,16 @@ def calc_heading_quat(q):
     heading_q = quat_from_angle_axis(heading, axis)
     return heading_q
 
-@torch.jit.script
+# @torch.jit.script
 def calc_heading_quat_inv(q):
     # type: (Tensor) -> Tensor
     # calculate heading rotation from quaternion
     # the heading is the direction on the xy plane
     # q must be normalized
-    heading = calc_heading(q)
+    # 返回xy平面内直角三角形沿z轴的反向旋转，意思为忽略高度的旋转只考虑水平面的旋转
+    heading = calc_heading(q) # 似乎是旋转角度
     axis = torch.zeros_like(q[..., 0:3])
-    axis[..., 2] = 1
+    axis[..., 2] = 1 # 旋转轴，因为是在xy平面上，所以z轴为1
 
-    heading_q = quat_from_angle_axis(-heading, axis)
+    heading_q = quat_from_angle_axis(-heading, axis) # 反角度旋转 因此为 inv
     return heading_q

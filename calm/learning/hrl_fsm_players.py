@@ -55,7 +55,7 @@ class HRLFSMPlayer(HRLPlayer):
             preproc_amp_obs = self._llc_agent._preproc_amp_obs(motion_amp_obs)
             encoded_demo_amp_obs = self._llc_agent.model.a2c_network.eval_enc(preproc_amp_obs)
             all_encoded_demo_amp_obs.append(encoded_demo_amp_obs)
-        all_encoded_demo_amp_obs = torch.cat(all_encoded_demo_amp_obs, dim=0)
+        all_encoded_demo_amp_obs = torch.cat(all_encoded_demo_amp_obs, dim=0) # 所有动作的encoder结果
 
         return all_encoded_demo_amp_obs
 

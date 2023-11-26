@@ -466,7 +466,7 @@ class MotionLib(DeviceDtypeModuleMixin):
             if (joint_size == 3):
                 joint_q = local_rot[:, body_id]
                 joint_exp_map = torch_utils.quat_to_exp_map(joint_q)
-                dof_pos[:, joint_offset:(joint_offset + joint_size)] = joint_exp_map
+                dof_pos[:, joint_offset:(joint_offset + joint_size)] = joint_exp_map # 把pos换成exp map？
             elif (joint_size == 1):
                 joint_q = local_rot[:, body_id]
                 joint_theta, joint_axis = torch_utils.quat_to_angle_axis(joint_q)
@@ -479,7 +479,7 @@ class MotionLib(DeviceDtypeModuleMixin):
                 print("Unsupported joint type")
                 assert(False)
 
-        return dof_pos
+        return dof_pos # 为什么是pos? 而在计算rotation
 
     def _local_rotation_to_dof_vel(self, local_rot0, local_rot1, dt):
         '''把motion的帧之间的rotation转为dof的angular velocity'''

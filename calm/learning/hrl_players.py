@@ -88,6 +88,13 @@ class HRLPlayer(common_player.CommonPlayer):
         return clamped_actions
 
     def run(self):
+        '''
+        参数说明：
+        n_games: 游戏次数
+        sum_game_res: 总游戏结果
+        games_played: 已经玩过的游戏次数
+
+        '''
         n_games = self.games_num
         render = self.render_env
         n_game_life = self.n_game_life
@@ -112,7 +119,7 @@ class HRLPlayer(common_player.CommonPlayer):
             if games_played >= n_games:
                 break
 
-            obs_dict = self.env_reset()
+            obs_dict = self.env_reset() # reset env
             batch_size = 1
             if len(obs_dict['obs'].size()) > len(self.obs_shape):
                 batch_size = obs_dict['obs'].size()[0]
