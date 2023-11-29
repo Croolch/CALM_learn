@@ -209,7 +209,7 @@ class HRLPlayer(common_player.CommonPlayer):
         done_count = 0.0
         disc_rewards = 0.0
         for t in range(self._llc_steps):
-            llc_actions = self._compute_llc_action(obs, action)
+            llc_actions = self._compute_llc_action(obs, action) # 来自mu的action
             obs, curr_rewards, curr_dones, infos = env.step(llc_actions)
 
             rewards += curr_rewards
@@ -261,7 +261,7 @@ class HRLPlayer(common_player.CommonPlayer):
         llc_env_info = copy.deepcopy(self.env_info)
         obs_space = llc_env_info['observation_space']
         obs_size = obs_space.shape[0]
-        obs_size -= self._task_size # 为什么减去tasksize
+        obs_size -= self._task_size # tasksize指的是target的数量 剩下的是humanoid的obs
         llc_env_info['observation_space'] = spaces.Box(obs_space.low[:obs_size], obs_space.high[:obs_size])
         llc_env_info['amp_observation_space'] = self.env.amp_observation_space.shape # amp obs 与 obs的区别
         llc_env_info['num_envs'] = self.env.task.num_envs
@@ -281,7 +281,7 @@ class HRLPlayer(common_player.CommonPlayer):
 
     def _compute_llc_action(self, obs, actions):
         llc_obs = self._extract_llc_obs(obs)
-        processed_obs = self._llc_agent._preproc_obs(llc_obs) # 这是什么
+        processed_obs = self._llc_agent._preproc_obs(llc_obs) # rlgames 预处理输入 normalize input等
 
         # z是latent
         z = torch.nn.functional.normalize(actions, dim=-1)

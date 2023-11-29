@@ -8,7 +8,7 @@ env: # 似乎是task的配置
   
   pdControl: True
   powerScale: 1.0 # 不知道是啥
-  controlFrequencyInv: 2 # 30 Hz  control decimation, ie. how many simulator steps between RL actions. Defaults to 1.
+  controlFrequencyInv: 2 # 30 Hz 在env step中每个rl action会执行2次物理模拟
   stateInit: "Default" # default是啥
   hybridInitProb: 0.5 # 不知道是啥
   numAMPObsSteps: 10 # 不知道是啥
@@ -24,7 +24,7 @@ env: # 似乎是task的配置
   attackType: kick # 控制agent的攻击方式
 
   strikeBodyNames: ["sword", "right_hand", "right_lower_arm"]
-  enableTaskObs: True
+  enableTaskObs: True # 是否使用target的观测
   
   asset:
     assetRoot: "calm/data/assets"

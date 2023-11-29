@@ -169,7 +169,7 @@ def calc_heading_quat(q):
     heading_q = quat_from_angle_axis(heading, axis)
     return heading_q
 
-# @torch.jit.script
+@torch.jit.script
 def calc_heading_quat_inv(q):
     # type: (Tensor) -> Tensor
     # calculate heading rotation from quaternion

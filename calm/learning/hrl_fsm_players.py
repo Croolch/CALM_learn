@@ -85,14 +85,14 @@ class HRLFSMPlayer(HRLPlayer):
         }
         with torch.no_grad():
             res_dict = self.model(input_dict)
-        mu = res_dict['mus']
-        action = res_dict['actions']
+        mu = res_dict['mus'] # mu是什么 64
+        action = res_dict['actions'] # 64
         self.states = res_dict['rnn_states']
         if is_determenistic:
             current_action = mu
         else:
             current_action = action
-        current_action = torch.squeeze(current_action.detach())
+        current_action = torch.squeeze(current_action.detach()) # 不影响梯度
 
         clamped_actions = torch.clamp(current_action, -1.0, 1.0)
 

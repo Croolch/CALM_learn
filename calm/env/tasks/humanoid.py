@@ -445,7 +445,7 @@ class Humanoid(BaseTask):
     def pre_physics_step(self, actions):
         self.actions = actions.to(self.device).clone()
         if self._pd_control:
-            pd_tar = self._action_to_pd_targets(self.actions)
+            pd_tar = self._action_to_pd_targets(self.actions) # llc得到的31个dof的action转为pd target
             pd_tar_tensor = gymtorch.unwrap_tensor(pd_tar)
             self.gym.set_dof_position_target_tensor(self.sim, pd_tar_tensor)
         else:
@@ -507,7 +507,7 @@ class Humanoid(BaseTask):
         return body_ids
 
     def _action_to_pd_targets(self, action):
-        pd_tar = self._pd_action_offset + self._pd_action_scale * action
+        pd_tar = self._pd_action_offset + self._pd_action_scale * action # offset表示
         return pd_tar
 
     def _init_camera(self):
@@ -531,7 +531,7 @@ class Humanoid(BaseTask):
         cam_pos = np.array([cam_trans.p.x, cam_trans.p.y, cam_trans.p.z])
         cam_delta = cam_pos - self._cam_prev_char_pos
 
-        new_cam_target = gymapi.Vec3(char_root_pos[0], char_root_pos[1], 1.0)
+        new_cam_target = gymapi.Vec3(char_root_pos[0], char_root_pos[1], 1.0) # 设置camera的target
         new_cam_pos = gymapi.Vec3(char_root_pos[0] + cam_delta[0], 
                                   char_root_pos[1] + cam_delta[1], 
                                   cam_pos[2])
@@ -617,7 +617,7 @@ def compute_humanoid_observations(root_pos, root_rot, root_vel, root_ang_vel, do
     obs = torch.cat((root_h_obs, root_rot_obs, local_root_vel, local_root_ang_vel, dof_obs, dof_vel, flat_local_key_pos), dim=-1)
     return obs
 
-# @torch.jit.script
+@torch.jit.script
 def compute_humanoid_observations_max(body_pos, body_rot, body_vel, body_ang_vel, local_root_obs, root_height_obs):
     # type: (Tensor, Tensor, Tensor, Tensor, bool, bool) -> Tensor
     # 把所有body的pos rot vel ang_vel施加一个旋转，这个旋转来自root的旋转

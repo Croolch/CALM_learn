@@ -90,7 +90,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
             },
         }
 
-        self._idle_index = 7
+        self._idle_index = 7 # 第7个动画是idle
         self._strike_index = self.attack_type.value
 
         self._enable_early_termination = False #提前终止什么
@@ -227,10 +227,10 @@ class HumanoidStrikeFSM(HumanoidStrike):
     def _draw_task(self):
         cols = np.array([[0.0, 1.0, 0.0]], dtype=np.float32)
 
-        self.gym.clear_lines(self.viewer)
+        self.gym.clear_lines(self.viewer) # line是一条线段
 
         starts = self._humanoid_root_states[..., 0:3]
-        ends = self._target_states[..., 0:3]
+        ends = self._target_states[..., 0:3] # target是标记，assest，不是pd
         verts = torch.cat([starts, ends], dim=-1).cpu().numpy()
 
         for i, env_ptr in enumerate(self.envs):
@@ -245,7 +245,7 @@ class HumanoidStrikeFSM(HumanoidStrike):
 ###=========================jit functions=========================###
 #####################################################################
 
-# @torch.jit.script
+@torch.jit.script
 def compute_strike_heading_observations(root_states, tar_pos, tar_height):
     # type: (Tensor, Tensor, Tensor) -> Tensor
     root_pos = root_states[:, 0:3]
@@ -277,9 +277,9 @@ def compute_strike_reward(tar_pos, tar_rot, root_state, prev_root_pos, strike_bo
     vel_reward_w = 0.4
 
     up = torch.zeros_like(tar_pos)
-    up[..., -1] = 1
+    up[..., -1] = 1 # z-up
     tar_up = quat_rotate(tar_rot, up)
-    tar_rot_err = torch.sum(up * tar_up, dim=-1)
+    tar_rot_err = torch.sum(up * tar_up, dim=-1) # 表示两个向量在空间中的相似度
     tar_rot_r = torch.clamp_min(1.0 - tar_rot_err, 0.0)
 
     root_pos = root_state[..., 0:3]
@@ -290,9 +290,9 @@ def compute_strike_reward(tar_pos, tar_rot, root_state, prev_root_pos, strike_bo
     tar_dir_speed = torch.sum(tar_dir * root_vel[..., :2], dim=-1)
     tar_vel_err = tar_speed - tar_dir_speed
     tar_vel_err = torch.clamp_min(tar_vel_err, 0.0)
-    vel_reward = torch.exp(-vel_err_scale * (tar_vel_err * tar_vel_err))
+    vel_reward = torch.exp(-vel_err_scale * (tar_vel_err * tar_vel_err)) # 速度绝接近reward越大
     speed_mask = tar_dir_speed <= 0
-    vel_reward[speed_mask] = 0
+    vel_reward[speed_mask] = 0 # 速度为负的reward为0
 
     reward = tar_rot_w * tar_rot_r + vel_reward_w * vel_reward
 
@@ -302,7 +302,7 @@ def compute_strike_reward(tar_pos, tar_rot, root_state, prev_root_pos, strike_bo
     return reward
 
 
-@torch.jit.script
+# @torch.jit.script
 def compute_humanoid_reset(reset_buf, progress_buf, contact_buf, contact_body_ids, rigid_body_pos,
                            tar_contact_forces, strike_body_ids, max_episode_length,
                            enable_early_termination, termination_heights):

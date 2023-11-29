@@ -80,7 +80,7 @@ class HumanoidAMPTask(humanoid_amp.HumanoidAMP):
         humanoid_obs = self._compute_humanoid_obs(env_ids) # 253 body应用root旋转，返回 root_h body_pos body_vel body_rot（6维） body_ang_vel
         
         if self._enable_task_obs:
-            task_obs = self._compute_task_obs(env_ids) # 3 target与root之间旋转的vec
+            task_obs = self._compute_task_obs(env_ids) # 3 target与root之间的旋转的pos
             obs = torch.cat([humanoid_obs, task_obs], dim=-1)
         else:
             obs = humanoid_obs

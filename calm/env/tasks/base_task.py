@@ -409,7 +409,7 @@ class BaseTask:
 
     def _physics_step(self):
         for i in range(self.control_freq_inv):
-            self.render()
+            self.render() # 更新相机，render images，画target与root body的连线
             self.gym.simulate(self.sim)
         return
 

@@ -47,7 +47,7 @@ class HumanoidStrike(humanoid_amp_task.HumanoidAMPTask):
 
         self._tar_dist_min = 0.5
         self._tar_dist_max = 10.0
-        self._near_dist = 1.5
+        self._near_dist = 1.5 # 
         self._near_prob = 0.5
 
         self._prev_root_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.float)
