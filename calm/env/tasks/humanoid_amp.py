@@ -77,7 +77,7 @@ class HumanoidAMP(Humanoid):
     def post_physics_step(self):
         super().post_physics_step()
 
-        self._update_hist_amp_obs()
+        self._update_hist_amp_obs() # 更新amp obs 历史记录
         self._compute_amp_observations()
 
         amp_obs_flat = self._amp_obs_buf.view(-1, self.get_num_amp_obs())
@@ -205,7 +205,10 @@ class HumanoidAMP(Humanoid):
             self._num_amp_obs_per_step = 13 + self._dof_obs_size + 28 + 3 * num_key_bodies # [root_h, root_rot, root_vel, root_ang_vel, dof_pos, dof_vel, key_body_pos]
         elif asset_file == "mjcf/amp_humanoid_sword_shield.xml":
             # 单个角色140维obs space
-            # 13 = pos3 + quaternion4 + velocity3 + angular3
+            # 13 = 1 + 6 + 3 + 3 root_h, root_rot, local_root_vel, local_root_ang_vel
+            # 13 * 6 = 78 13个关节的rot dof_obs
+            # 31 为joint所有dof的vel dof_vel
+            # 3 * 6 = 18 6个local_key_pos
             self._num_amp_obs_per_step = 13 + self._dof_obs_size + 31 + 3 * num_key_bodies # [root_h, root_rot, root_vel, root_ang_vel, dof_pos, dof_vel, key_body_pos]
         else:
             print("Unsupported character config file: {s}".format(asset_file))
@@ -380,7 +383,7 @@ class HumanoidAMP(Humanoid):
 ###=========================jit functions=========================###
 #####################################################################
 
-# @torch.jit.script
+@torch.jit.script
 def build_amp_observations(root_pos, root_rot, root_vel, root_ang_vel, dof_pos, dof_vel, key_body_pos, 
                            local_root_obs, root_height_obs, dof_obs_size, dof_offsets):
     # type: (Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, bool, bool, int, List[int]) -> Tensor

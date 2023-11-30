@@ -215,12 +215,12 @@ class Humanoid(BaseTask):
             self._num_actions = 28
             self._num_obs = 1 + 15 * (3 + 6 + 3 + 3) - 3
             
-        elif asset_file == "mjcf/amp_humanoid_sword_shield.xml":
+        elif asset_file == "mjcf/amp_humanoid_sword_shield.xml": 
             self._dof_body_ids = [1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16] # motor定义了13个joint 还是不懂6 9 10 怎么没了
-            self._dof_offsets = [0, 3, 6, 9, 10, 13, 16, 17, 20, 21, 24, 27, 28, 31] # motor的单个joint的dof的分组
-            self._dof_obs_size = 78
-            self._num_actions = 31
-            self._num_obs = 1 + 17 * (3 + 6 + 3 + 3) - 3 # 不知道什么含义
+            self._dof_offsets = [0, 3, 6, 9, 10, 13, 16, 17, 20, 21, 24, 27, 28, 31] # 定义了单个joint的size
+            self._dof_obs_size = 78 # joint的旋转 num_joints * 6 = 13 * 6 = 78
+            self._num_actions = 31 # joint的dof合
+            self._num_obs = 1 + 17 * (3 + 6 + 3 + 3) - 3 # 253，17指的是body数量，3 6 3 3分别是pos rot vel ang_vel，-3是去掉root的pos，1是root的高度
 
         else:
             print("Unsupported character config file: {s}".format(asset_file))
@@ -463,7 +463,7 @@ class Humanoid(BaseTask):
         self._refresh_sim_tensors()
         self._compute_observations()
         self._compute_reward(self.actions)
-        self._compute_reset()
+        self._compute_reset() # 计算reset_buf和terminate_buf
         
         self.extras["terminate"] = self._terminate_buf
 

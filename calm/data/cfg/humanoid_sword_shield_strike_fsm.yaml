@@ -11,7 +11,7 @@ env: # 似乎是task的配置
   controlFrequencyInv: 2 # 30 Hz 在env step中每个rl action会执行2次物理模拟
   stateInit: "Default" # default是啥
   hybridInitProb: 0.5 # 不知道是啥
-  numAMPObsSteps: 10 # 不知道是啥
+  numAMPObsSteps: 10 # amp obs buf 的大小
   numAMPEncObsSteps: 60 # 不知道是啥
   
   localRootObs: True

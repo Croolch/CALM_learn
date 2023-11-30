@@ -302,7 +302,7 @@ def compute_strike_reward(tar_pos, tar_rot, root_state, prev_root_pos, strike_bo
     return reward
 
 
-# @torch.jit.script
+@torch.jit.script
 def compute_humanoid_reset(reset_buf, progress_buf, contact_buf, contact_body_ids, rigid_body_pos,
                            tar_contact_forces, strike_body_ids, max_episode_length,
                            enable_early_termination, termination_heights):

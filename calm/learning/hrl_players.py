@@ -92,7 +92,7 @@ class HRLPlayer(common_player.CommonPlayer):
         参数说明：
         n_games: 游戏次数
         sum_game_res: 总游戏结果
-        games_played: 已经玩过的游戏次数
+        games_played: 进入done状态的游戏次数
 
         '''
         n_games = self.games_num
@@ -136,7 +136,8 @@ class HRLPlayer(common_player.CommonPlayer):
 
             done_indices = []
 
-            for n in range(self.max_steps):
+            max_steps = self.max_steps
+            for n in range(max_steps):
                 obs_dict = self.env_reset(done_indices)
 
                 if has_masks:
@@ -144,7 +145,7 @@ class HRLPlayer(common_player.CommonPlayer):
                     action = self.get_masked_action(obs_dict, masks, is_determenistic)
                 else:
                     action = self.get_action(obs_dict, is_determenistic) # get actions?
-                obs_dict, r, done, info = self.env_step(self.env, obs_dict, action)
+                obs_dict, r, done, info = self.env_step(self.env, obs_dict, action) # 怎么判断的done
                 cr += r
                 steps += 1
   
@@ -155,7 +156,7 @@ class HRLPlayer(common_player.CommonPlayer):
                     time.sleep(self.render_sleep)
 
                 all_done_indices = done.nonzero(as_tuple=False)
-                done_indices = all_done_indices[::self.num_agents]
+                done_indices = all_done_indices[::self.num_agents] # 切片步长
                 done_count = len(done_indices)
                 games_played += done_count
 
@@ -169,7 +170,7 @@ class HRLPlayer(common_player.CommonPlayer):
 
                     cr = cr * (1.0 - done.float())
                     steps = steps * (1.0 - done.float())
-                    sum_rewards += cur_rewards
+                    sum_rewards += cur_rewards # done一次才会加一次
                     sum_steps += cur_steps
 
                     game_res = 0.0
@@ -217,10 +218,10 @@ class HRLPlayer(common_player.CommonPlayer):
 
             amp_obs = infos['amp_obs']
             curr_disc_reward = self._calc_disc_reward(amp_obs)
-            curr_disc_reward = curr_disc_reward[0, 0].cpu().numpy()
+            curr_disc_reward = curr_disc_reward[0, 0].cpu().numpy() # 只取第一个env的disc的reward
             disc_rewards += curr_disc_reward
 
-        rewards /= self._llc_steps
+        rewards /= self._llc_steps # 为什么要除
         dones = torch.zeros_like(done_count)
         dones[done_count > 0] = 1.0
 
@@ -230,7 +231,7 @@ class HRLPlayer(common_player.CommonPlayer):
             obs = obs['obs']
         if obs.dtype == np.float64:
             obs = np.float32(obs)
-        if self.value_size > 1:
+        if self.value_size > 1: # network的输出是多个值
             rewards = rewards[0]
         if self.is_tensor_obses:
             return obs, rewards.cpu(), dones.cpu(), infos

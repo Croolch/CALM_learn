@@ -96,7 +96,7 @@ class AMPPlayerContinuous(common_player.CommonPlayer):
         if self._normalize_amp_input:
             shape = amp_obs.shape
             amp_obs = amp_obs.view(-1, self.env.amp_observation_space.shape[0] // self.env.task._num_amp_obs_steps)
-            amp_obs = self._amp_input_mean_std(amp_obs)
+            amp_obs = self._amp_input_mean_std(amp_obs) # mean std的作用是什么？
             amp_obs = amp_obs.view(shape)
         return amp_obs
 
@@ -113,7 +113,7 @@ class AMPPlayerContinuous(common_player.CommonPlayer):
 
     def _calc_disc_rewards(self, amp_obs):
         with torch.no_grad():
-            disc_logits = self._eval_disc(amp_obs)
+            disc_logits = self._eval_disc(amp_obs) # scalar
             prob = 1 / (1 + torch.exp(-disc_logits)) 
             disc_r = -torch.log(torch.maximum(1 - prob, torch.tensor(0.0001, device=self.device)))
             disc_r *= self._disc_reward_scale

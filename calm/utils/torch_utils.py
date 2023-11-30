@@ -143,7 +143,7 @@ def slerp(q0, q1, t):
 
     return new_q
 
-# @torch.jit.script
+@torch.jit.script
 def calc_heading(q):
     # type: (Tensor) -> Tensor
     # calculate heading direction from quaternion
