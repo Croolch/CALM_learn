@@ -34,6 +34,8 @@ from isaacgym import gymtorch
 from isaacgym import gymapi
 from isaacgym.torch_utils import *
 
+from utils.keyframe_buffer import save_to_csv
+
 from utils import torch_utils
 
 from env.tasks.base_task import BaseTask
@@ -135,7 +137,9 @@ class Humanoid(BaseTask):
 
         if self.viewer is not None:
             self._init_camera()
-            
+        
+        # MY 得到rigidbody的name的list
+        self._rigid_body_names = self.gym.get_actor_rigid_body_names(self.envs[0], self.humanoid_handles[0])
         return
 
     def get_obs_size(self):
@@ -441,6 +445,11 @@ class Humanoid(BaseTask):
         self._dof_pos[env_ids] = self._initial_dof_pos[env_ids]
         self._dof_vel[env_ids] = self._initial_dof_vel[env_ids]
         return
+    
+    def _export_rigid_body_state(self):
+        '''MY 导出rigid body的state'''
+        save_to_csv(self.progress_buf[0], self._rigid_body_names, self._rigid_body_pos[0], self._rigid_body_rot[0])
+        return
 
     def pre_physics_step(self, actions):
         self.actions = actions.to(self.device).clone()
@@ -464,6 +473,8 @@ class Humanoid(BaseTask):
         self._compute_observations()
         self._compute_reward(self.actions)
         self._compute_reset() # 计算reset_buf和terminate_buf
+
+        self._export_rigid_body_state() # 输出rigid body的state
         
         self.extras["terminate"] = self._terminate_buf
 
