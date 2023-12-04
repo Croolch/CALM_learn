@@ -1,5 +1,5 @@
 # 把csv中的position与rotation转变为blender中的position与rotation，以csv表头的名字对应为blender中objects的名字
-# import bpy
+import bpy
 import csv
 import os
 
@@ -39,11 +39,15 @@ for i in range(len(data)):
         body_state[i].append(data[i][j * 7 : (j + 1) * 7])
 
 
-# create objects based on body name
-for i in range(body_num):
-    bpy.ops.mesh.primitive_cube_add(size = 0.1, enter_editmode = False, location = (0, 0, 0))
-    bpy.context.object.name = body_name[i]
-    bpy.context.object.rotation_mode = 'QUATERNION'
+# # create objects based on body name
+# for i in range(body_num):
+#     bpy.ops.mesh.primitive_cube_add(size = 0.1, enter_editmode = False, location = (0, 0, 0))
+#     bpy.context.object.name = body_name[i]
+#     bpy.context.object.rotation_mode = 'QUATERNION'
+
+# set all objects rotation_mode to quaternion
+for obj in bpy.data.objects:
+    obj.rotation_mode = 'QUATERNION'
 
 # set keyframe
 for i in range(len(body_state)):

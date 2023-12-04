@@ -1,3 +1,5 @@
 *.pyc
 calm/data/models/ase_llc_reallusion_sword_shield.pth
 state_timestamp.csv
+calm/poselib/mydata
+wandb

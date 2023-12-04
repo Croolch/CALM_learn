@@ -5,12 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: 当前文件",
+            "name": "Python: 当前目录",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": false,
+            "cwd": "${fileDirname}"
         },
         {
             "name": "Python: run",
@@ -35,6 +36,26 @@
                 "calm/data/models/calm_llc_reallusion_sword_shield.pth",
                 "--checkpoint",
                 "calm/data/models/calm_hlc_precision_trained_reallusion_sword_shield.pth"
+            ]
+        },
+        {
+            "name": "Python: llc-train",
+            "type": "python",
+            "request": "launch",
+            "program": "calm/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--task",
+                "HumanoidAMPGetup",
+                "--cfg_env",
+                "calm/data/cfg/humanoid_calm_sword_shield_getup.yaml",
+                "--cfg_train",
+                "calm/data/cfg/train/rlg/calm_humanoid.yaml",
+                "--motion_file",
+                "calm/data/motions/reallusion_sword_shield/dataset_reallusion_sword_shield.yaml",
+                "--headless",
+                "--track"
             ]
         }
     ]
