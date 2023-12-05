@@ -1,7 +1,7 @@
 # if given, will override the device setting in gym. 
 env: 
-  numEnvs: 4096
-  envSpacing: 5
+  numEnvs: 1024 # 4096
+  envSpacing: 5 # gym 里每个 env 之间的间隔
   episodeLength: 300
   isFlagrun: False
   enableDebugVis: False
@@ -20,7 +20,7 @@ env:
   localRootObs: True
   keyBodies: ["right_hand", "left_hand", "right_foot", "left_foot", "sword", "shield"]
   contactBodies: ["right_foot", "left_foot"]
-  terminationHeight: 0.15
+  terminationHeight: 0.15 # 所有body的终止高度，与early termination有关
   enableEarlyTermination: True
 
 #  equal_motion_weights: True   # override weights in motion file to assign equal weights to all

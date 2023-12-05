@@ -165,7 +165,7 @@ class MotionLib(DeviceDtypeModuleMixin):
         self._key_body_ids = torch.tensor(key_body_ids, device=device)
         self._device = device
         self._equal_motion_weights = equal_motion_weights
-        self.motion_files = self._load_motions(motion_file)
+        self.motion_files = self._load_motions(motion_file) # 文件名列表
 
         motions = self.state.motions
         self.register_buffer(
@@ -213,10 +213,10 @@ class MotionLib(DeviceDtypeModuleMixin):
 
         lengths = self.state.motion_num_frames
         lengths_shifted = lengths.roll(1) # 元素向后移动一位，第一个元素变为最后一个元素
-        lengths_shifted[0] = 0 # 第一个（最后一个）帧数置为0 为什么？？
+        lengths_shifted[0] = 0
         self.register_buffer(
             "length_starts", lengths_shifted.cumsum(0), persistent=False
-        ) # cumsum计算张量的累积和？不懂这个dim的概念，我以为是单个值，但是这里是一个张量
+        ) # 累加，得到每个motion的起始帧数
 
         self.register_buffer(
             "motion_ids",
@@ -384,7 +384,7 @@ class MotionLib(DeviceDtypeModuleMixin):
             motion_dt=self._motion_dt,
             motion_num_frames=self._motion_num_frames,
             motion_files=tuple(motion_files),
-        )
+        ) # state 存储 motion，需要使用nn.Module
 
         num_motions = self.num_motions()
         total_len = self.get_total_length()
@@ -442,7 +442,7 @@ class MotionLib(DeviceDtypeModuleMixin):
         for f in range(num_frames - 1): # 求速度，所以最后一帧没有下一帧了
             local_rot0 = motion.local_rotation[f]
             local_rot1 = motion.local_rotation[f + 1]
-            frame_dof_vel = self._local_rotation_to_dof_vel(local_rot0, local_rot1, dt)
+            frame_dof_vel = self._local_rotation_to_dof_vel(local_rot0, local_rot1, dt) # 因为dof都是joint，所以只处理角速度
             frame_dof_vel = frame_dof_vel
             dof_vels.append(frame_dof_vel)
         

@@ -55,9 +55,6 @@
                 "--motion_file",
                 "calm/data/motions/reallusion_sword_shield/dataset_reallusion_sword_shield.yaml",
                 "--headless",
-                "--track",
-                "--num_envs",
-                "2",
             ]
         }
     ]

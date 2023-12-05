@@ -218,7 +218,7 @@ class HumanoidAMP(Humanoid):
 
     def _load_motion(self, motion_file):
         '''把所有的motion以及计算的pos vel等信息都存储在motion_lib中，然后在这里通过motion_lib来获取motion的信息'''
-        assert(self._dof_offsets[-1] == self.num_dof) # 没懂这个判断，可能是确保关节和dof数量的
+        assert(self._dof_offsets[-1] == self.num_dof) # 确保character model正确，关节和dof数量一致
         self._motion_lib = MotionLib(motion_file=motion_file,
                                      dof_body_ids=self._dof_body_ids,
                                      dof_offsets=self._dof_offsets,

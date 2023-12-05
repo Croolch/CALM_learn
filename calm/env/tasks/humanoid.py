@@ -76,11 +76,11 @@ class Humanoid(BaseTask):
         self.dt = self.control_freq_inv * sim_params.dt
         
         # get gym GPU state tensors
-        actor_root_state = self.gym.acquire_actor_root_state_tensor(self.sim)
-        dof_state_tensor = self.gym.acquire_dof_state_tensor(self.sim)
-        sensor_tensor = self.gym.acquire_force_sensor_tensor(self.sim)
-        rigid_body_state = self.gym.acquire_rigid_body_state_tensor(self.sim)
-        contact_force_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
+        actor_root_state = self.gym.acquire_actor_root_state_tensor(self.sim) # 13
+        dof_state_tensor = self.gym.acquire_dof_state_tensor(self.sim) # 31
+        sensor_tensor = self.gym.acquire_force_sensor_tensor(self.sim) # 2,6 2 feet force3 torque3
+        rigid_body_state = self.gym.acquire_rigid_body_state_tensor(self.sim) # 17
+        contact_force_tensor = self.gym.acquire_net_contact_force_tensor(self.sim) # 17
 
         sensors_per_env = 2
 
@@ -125,7 +125,7 @@ class Humanoid(BaseTask):
         contact_force_tensor = gymtorch.wrap_tensor(contact_force_tensor)
         self._contact_forces = contact_force_tensor.view(self.num_envs, bodies_per_env, 3)[..., :self.num_bodies, :]
         
-        self._terminate_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
+        self._terminate_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long) # 存储rl step 终止的信号
         
         self._build_termination_heights()
         
@@ -234,6 +234,7 @@ class Humanoid(BaseTask):
         return
 
     def _build_termination_heights(self):
+        '''body 到达一定高度就终止episode'''
         head_term_height = 0.3
         shield_term_height = 0.32
 
@@ -268,13 +269,13 @@ class Humanoid(BaseTask):
         asset_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
         humanoid_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options)
 
-        actuator_props = self.gym.get_asset_actuator_properties(humanoid_asset)
+        actuator_props = self.gym.get_asset_actuator_properties(humanoid_asset) # motor_effort 为xml中的gear
         motor_efforts = [prop.motor_effort for prop in actuator_props] # motor_efforts是什么
         
         # create force sensors at the feet
         right_foot_idx = self.gym.find_asset_rigid_body_index(humanoid_asset, "right_foot")
         left_foot_idx = self.gym.find_asset_rigid_body_index(humanoid_asset, "left_foot")
-        sensor_pose = gymapi.Transform()
+        sensor_pose = gymapi.Transform() # pos and rot
 
         self.gym.create_asset_force_sensor(humanoid_asset, right_foot_idx, sensor_pose)
         self.gym.create_asset_force_sensor(humanoid_asset, left_foot_idx, sensor_pose)
@@ -285,7 +286,7 @@ class Humanoid(BaseTask):
         self.torso_index = 0
         self.num_bodies = self.gym.get_asset_rigid_body_count(humanoid_asset)
         self.num_dof = self.gym.get_asset_dof_count(humanoid_asset) # motor num
-        self.num_joints = self.gym.get_asset_joint_count(humanoid_asset)
+        self.num_joints = self.gym.get_asset_joint_count(humanoid_asset) # 34 = 31 + freejoint?
 
         self.humanoid_handles = []
         self.envs = []
@@ -335,7 +336,7 @@ class Humanoid(BaseTask):
             self.gym.set_rigid_body_color(env_ptr, humanoid_handle, j, gymapi.MESH_VISUAL, gymapi.Vec3(0.54, 0.85, 0.2))
 
         if self._pd_control:
-            dof_prop = self.gym.get_asset_dof_properties(humanoid_asset) # dof property 不懂
+            dof_prop = self.gym.get_asset_dof_properties(humanoid_asset) # 修改drivemode为pos，只响应pos的target command
             dof_prop["driveMode"] = gymapi.DOF_MODE_POS
             self.gym.set_actor_dof_properties(env_ptr, humanoid_handle, dof_prop)
 

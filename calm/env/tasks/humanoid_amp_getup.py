@@ -63,11 +63,12 @@ class HumanoidAMPGetup(HumanoidAMP):
         return
 
     def _generate_fall_states(self):
+        '''随机root朝向，随机actions，模拟150步，得到fall状态'''
         max_steps = 150
         
         env_ids = to_torch(np.arange(self.num_envs), device=self.device, dtype=torch.long)
         root_states = self._initial_humanoid_root_states[env_ids].clone()
-        root_states[..., 3:7] = torch.randn_like(root_states[..., 3:7])
+        root_states[..., 3:7] = torch.randn_like(root_states[..., 3:7]) # randomize root orientation
         root_states[..., 3:7] = torch.nn.functional.normalize(root_states[..., 3:7], dim=-1)
         self._humanoid_root_states[env_ids] = root_states
         
