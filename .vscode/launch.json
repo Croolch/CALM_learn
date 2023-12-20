@@ -56,6 +56,29 @@
                 "calm/data/motions/reallusion_sword_shield/dataset_reallusion_sword_shield.yaml",
                 "--headless",
             ]
+        },
+        {
+            "name": "Python: llc-test",
+            "type": "python",
+            "request": "launch",
+            "program": "calm/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--test",
+                "--task",
+                "HumanoidAMP",
+                "--num_envs",
+                "1",
+                "--cfg_env",
+                "calm/data/cfg/humanoid_sword_shield.yaml",
+                "--cfg_train",
+                "calm/data/cfg/train/rlg/amp_humanoid.yaml",
+                "--motion_file",
+                "calm/data/motions/reallusion_sword_shield/RL_Avatar_Atk_2xCombo01_Motion.npy",
+                "--checkpoint",
+                "calm/data/models/calm_llc_reallusion_sword_shield.pth",
+            ]
         }
     ]
 }
