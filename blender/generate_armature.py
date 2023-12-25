@@ -16,6 +16,7 @@ num_joint = len(node_names)
 
 # node_names insert root node
 node_names.insert(0, "root")
+parent_indices += 1
 
 global_translation = np.zeros((num_joint, 3))
 for i in range(num_joint):
