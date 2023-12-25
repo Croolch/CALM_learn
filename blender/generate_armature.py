@@ -1,6 +1,6 @@
 # generate armature and bones from npy file
 
-# import bpy
+import bpy
 import numpy as np
 import os
 
@@ -8,15 +8,12 @@ import os
 sk_filepath = "/home/chen/Desktop/code/CALM/calm/poselib/armature.npy"
 sk_dict = np.load(sk_filepath, allow_pickle=True).item()
 
-node_names = sk_dict["node_names"]
+node_names = sk_dict["joint_names"]
 parent_indices = sk_dict["parent_indices"]
-local_translation = sk_dict["local_translation"]
+local_translation = sk_dict["joint_local_translation"]
 
 num_joint = len(node_names)
 
-# node_names insert root node
-node_names.insert(0, "root")
-parent_indices += 1
 
 global_translation = np.zeros((num_joint, 3))
 for i in range(num_joint):
@@ -43,6 +40,8 @@ armature_obj.select_set(True)
 bpy.ops.object.mode_set(mode='EDIT')
 
 for i in range(num_joint):
+    if node_names[i] == "none":
+        continue
     bone = armature.edit_bones.new(node_names[i])
     bone.head = (0, 0, 0) if parent_indices[i] == -1 else global_translation[parent_indices[i]]
     bone.tail = global_translation[i]

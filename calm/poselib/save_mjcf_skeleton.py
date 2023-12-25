@@ -25,18 +25,29 @@ def generate_joints_from_mjcf(path: str):
     parent_indices = []
     local_translation = []
     joint_names = []
+    joint_parent_indices = []
     joint_local_translation = []
 
     # adding joint nodes
-    def _add_xml_joint_node(xml_node):
+    def _add_xml_joint_node(xml_node, parent_index):
         # find joint from subnode
         joint_node = xml_node.find("joint")
         if joint_node is None:
             joint_node = xml_node.find("freejoint")
-        
-        assert joint_node is not None, "No joint found in the body node."
 
+        if joint_node is None:
+            joint_names.append("none")
+            joint_parent_indices.append(parent_index)
+            joint_local_translation.append(np.zeros(3))
+            return
+        
+        # assert joint_node is not None, "No joint found in the body node."
+
+        joint_parent_indices.append(parent_index)
         joint_name = joint_node.attrib.get("name")
+        if joint_name[-2:] in ["_x", "_y", "_z"]:
+            joint_name = joint_name[:-2]
+        print("adding joint name: ", joint_name)
         joint_names.append(joint_name)
         joint_pos_str = joint_node.attrib.get("pos")
         if joint_pos_str is not None:
@@ -44,6 +55,13 @@ def generate_joints_from_mjcf(path: str):
             joint_local_translation.append(joint_pos)
         else:
             joint_local_translation.append(np.zeros(3))
+    
+    # post process the joint nodes
+    def _joint_postprocess():
+        # compress the joint nodes indices
+        # add body translation to the joint local translation
+        for i in range(len(joint_parent_indices)):
+            joint_local_translation[i] += local_translation[i]
 
     # recursively adding all nodes into the skel_tree
     def _add_xml_node(xml_node, parent_index, node_index):
@@ -54,7 +72,7 @@ def generate_joints_from_mjcf(path: str):
         parent_indices.append(parent_index)
         local_translation.append(pos)
 
-        _add_xml_joint_node(xml_node)
+        _add_xml_joint_node(xml_node, parent_index)
 
         curr_index = node_index
         node_index += 1
@@ -64,14 +82,18 @@ def generate_joints_from_mjcf(path: str):
 
     _add_xml_node(xml_body_root, -1, 0)
 
-    return dict(
-        node_names,
-        parent_indices,
-        local_translation,
-        joint_names,
-        joint_local_translation,
-    )
+    _joint_postprocess()
+
+    return {
+        "node_names": node_names,
+        "parent_indices": parent_indices,
+        "local_translation": local_translation,
+        "joint_names": joint_names,
+        "joint_parent_indices": joint_parent_indices,
+        "joint_local_translation": joint_local_translation,
+    }
 
 sk_dict = generate_joints_from_mjcf("../data/assets/mjcf/amp_humanoid_sword_shield.xml")
 
+print(sk_dict["joint_parent_indices"])
 np.save("armature.npy", sk_dict)
