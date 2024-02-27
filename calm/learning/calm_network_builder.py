@@ -123,7 +123,7 @@ class CALMBuilder(amp_network_builder.AMPBuilder):
             # print calm_network
             print(" ")
             print("----calm_network----")
-            print(self)
+            # print(self)
             print("----calm_network----")
             print(" ")
             return

@@ -1,14 +1,15 @@
 # 把csv中的position与rotation转变为blender中的position与rotation，以csv表头的名字对应为blender中objects的名字
+import numpy as np
 import bpy
 import csv
-import os
 
 # read csv file
 csv_path = "/home/chen/Desktop/code/CALM/state_timestamp.csv"
+armature_npy_path = "/home/chen/Desktop/code/CALM/armature.npy"
 csv_file = open(csv_path, "r")
 reader = csv.reader(csv_file)
 # get the header
-header = next(reader)
+# header = next(reader)
 # get the data
 data = []
 for row in reader:
@@ -22,37 +23,40 @@ csv_file.close()
 # for i in range(len(data)):
 #     data[i] = data[i][1:]
 
-# get body number
-body_num = int(len(header) / 7)
-# get body name
-body_name = []
-for i in range(body_num):
-    # header取出字符串，按照_分割，删去最后两个元素，再按照_连接
-    body_name.append("_".join(header[i * 7].split("_")[:-2]))
+# read armature.npy
+armature = np.load(armature_npy_path, allow_pickle=True).item()
 
+# get joint name
+joint_name = armature["joint_names"]
+# get joint number
+joint_num = len(joint_name)
 
-# get body statefrom data (frame, body_num, 7)
-body_state = []
-for i in range(len(data)):
-    body_state.append([])
-    for j in range(body_num):
-        body_state[i].append(data[i][j * 7 : (j + 1) * 7])
-
-
-# # create objects based on body name
-# for i in range(body_num):
-#     bpy.ops.mesh.primitive_cube_add(size = 0.1, enter_editmode = False, location = (0, 0, 0))
-#     bpy.context.object.name = body_name[i]
-#     bpy.context.object.rotation_mode = 'QUATERNION'
-
-# set all objects rotation_mode to quaternion
-for obj in bpy.data.objects:
-    obj.rotation_mode = 'QUATERNION'
+# get root joint pos rot and non root joint rot
+root_pos = data[:, :3]
+root_rot = data[:, 3:7]
+non_root_rot = data[:, 7:].reshape(-1, joint_num - 1, 4)
 
 # set keyframe
-for i in range(len(body_state)):
-    for j in range(body_num):
-        bpy.data.objects[body_name[j]].location = (float(body_state[i][j][0]), float(body_state[i][j][1]), float(body_state[i][j][2]))
-        bpy.data.objects[body_name[j]].rotation_quaternion = (float(body_state[i][j][3]), float(body_state[i][j][4]), float(body_state[i][j][5]), float(body_state[i][j][6]))
-        bpy.data.objects[body_name[j]].keyframe_insert(data_path = "location", frame = i)
-        bpy.data.objects[body_name[j]].keyframe_insert(data_path = "rotation_quaternion", frame = i)
+# get armature object
+armature_obj = bpy.data.objects["Armature"]
+
+# set root joint pos rot
+for i in range(len(root_pos)):
+    # set root joint pos
+    armature_obj.location = root_pos[i]
+    # set root joint rot
+    armature_obj.rotation_mode = "QUATERNION"
+    armature_obj.rotation_quaternion = root_rot[i]
+    # set keyframe
+    armature_obj.keyframe_insert(data_path="location", frame=i)
+    armature_obj.keyframe_insert(data_path="rotation_quaternion", frame=i)
+
+# set non root joint rot
+for i in range(len(non_root_rot)):
+    for j in range(joint_num - 1):
+        # set non root joint rot
+        joint_obj = bpy.data.objects[joint_name[j]]
+        joint_obj.rotation_mode = "QUATERNION"
+        joint_obj.rotation_quaternion = non_root_rot[i][j]
+        # set keyframe
+        joint_obj.keyframe_insert(data_path="rotation_quaternion", frame=i)

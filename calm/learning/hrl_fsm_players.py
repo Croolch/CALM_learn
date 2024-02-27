@@ -35,7 +35,7 @@ class HRLFSMPlayer(HRLPlayer):
     def _build_llc(self, config_params, checkpoint_file):
         super()._build_llc(config_params, checkpoint_file)
 
-        self.env.task._possible_latents = self._get_motion_encoding()
+        self.env.task._possible_latents = self._get_motion_encoding() # 获得所有动作的encoder结果
 
     def _get_motion_encoding(self):
         all_encoded_demo_amp_obs = []
@@ -84,7 +84,7 @@ class HRLFSMPlayer(HRLPlayer):
             'rnn_states': self.states
         }
         with torch.no_grad():
-            res_dict = self.model(input_dict)
+            res_dict = self.model(input_dict) # hlc net
         mu = res_dict['mus'] # mu是什么 64
         action = res_dict['actions'] # 64
         self.states = res_dict['rnn_states']
@@ -95,8 +95,17 @@ class HRLFSMPlayer(HRLPlayer):
         current_action = torch.squeeze(current_action.detach()) # 不影响梯度
 
         clamped_actions = torch.clamp(current_action, -1.0, 1.0)
-
-        clamped_actions[self.env.task._should_strike == 1] = self.env.task._possible_latents[self.env.task._strike_index]
+        
+        clamped_actions[self.env.task._should_strike == 1] = self.env.task._possible_latents[-1]
         clamped_actions[self.env.task._stay_idle == 1] = self.env.task._possible_latents[self.env.task._idle_index]
+
+        # test random action
+        # change every 100 steps
+        # if self.env.task.progress_buf[0] % 100 == 0:
+        #     random_action_index = torch.randint(0, self.env.task._possible_latents.shape[0], (1,))
+        #     random_action_index = 4
+        #     print(f'Random action: {random_action_index}')
+        #     clamped_actions[0] = self.env.task._possible_latents[random_action_index]
+        
 
         return clamped_actions

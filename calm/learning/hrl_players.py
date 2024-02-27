@@ -48,14 +48,14 @@ class HRLPlayer(common_player.CommonPlayer):
             llc_config_params = llc_config['params']
             self._latent_dim = llc_config_params['config']['latent_dim']
         
-        super().__init__(config)
+        super().__init__(config) # network
         
         self._task_size = self.env.task.get_task_obs_size()
         
         self._llc_steps = config['llc_steps']
         llc_checkpoint = config['llc_checkpoint']
         assert(llc_checkpoint != "")
-        self._build_llc(llc_config_params, llc_checkpoint)
+        self._build_llc(llc_config_params, llc_checkpoint) # llc network
 
         self._target_motion_index = torch.zeros((self.env.task.num_envs, 1), dtype=torch.long, device=self.device)
 

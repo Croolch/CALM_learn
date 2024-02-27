@@ -447,9 +447,9 @@ class Humanoid(BaseTask):
         self._dof_vel[env_ids] = self._initial_dof_vel[env_ids]
         return
     
-    def _export_rigid_body_state(self):
-        '''MY 导出rigid body的state'''
-        save_to_csv(self.progress_buf[0], self._rigid_body_names, self._rigid_body_pos[0], self._rigid_body_rot[0])
+    def _export_dof_pos(self):
+        '''MY 导出joints的state'''
+        save_to_csv(self.progress_buf[0], self._humanoid_root_states[0], self._dof_pos[0], self._dof_offsets)
         return
 
     def pre_physics_step(self, actions):
@@ -475,7 +475,7 @@ class Humanoid(BaseTask):
         self._compute_reward(self.actions)
         self._compute_reset() # 计算reset_buf和terminate_buf
 
-        self._export_rigid_body_state() # 输出rigid body的state
+        self._export_dof_pos() # 输出joint的state
         
         self.extras["terminate"] = self._terminate_buf
 

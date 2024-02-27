@@ -185,7 +185,8 @@ class CommonPlayer(players.PpoPlayerContinuous):
             return self.obs_to_torch(obs), torch.from_numpy(rewards), torch.from_numpy(dones), infos
 
     def _build_net(self, config):
-        self.model = self.network.build(config)
+        self.model = self.network.build(config) # a2c net 
+        print(self.model)
         self.model.to(self.device)
         self.model.eval() # evaluation not training
         self.is_rnn = self.model.is_rnn()
